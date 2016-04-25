@@ -5,6 +5,9 @@
  */
 package AGL;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,8 +66,11 @@ public class testAlgorithm
         */
         
         
+        File archivo = new File("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/smallHDFS");
+        FileReader fr = new FileReader (archivo);
+        BufferedReader br = new BufferedReader(fr);
         
-        Algorithm alg = new Algorithm("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/datasetHDFSLast", rnd);
+        Algorithm alg = new Algorithm(br.readLine(), rnd);
         PriorityQueue<Rule> p = new PriorityQueue();
         p.addAll(alg.run());
         
