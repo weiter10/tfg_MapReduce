@@ -63,7 +63,8 @@ public class Map extends Mapper<LongWritable, Text, Text, Text>
     
     
     @Override
-    public void map(LongWritable key, Text value, Context context) throws InterruptedException, IOException
+    public void map(LongWritable key, Text value, Context context)
+            throws InterruptedException, IOException
     {
         try
         {
@@ -80,15 +81,16 @@ public class Map extends Mapper<LongWritable, Text, Text, Text>
             //Key: cuerpo de la regla
             
             //Value:
-            //1 Clase
-            //2 Num ejemplos pos
-            //3 Num ejemplos neg
-            //4 func. evaluzación
-            //5 pi
+            //0 Clase
+            //1 Num ejemplos pos
+            //2 Num ejemplos neg
+            //3 func. evaluzación
+            //4 pi
             
         }catch (Exception ex)
         {
-            context.write(new Text("Error"), new Text(ex.getMessage() + "\n" + ex.getLocalizedMessage() + "\n" + ex.toString()));
+            context.write(new Text("Error"), new Text(ex.getMessage() + "\n" + 
+                    ex.getLocalizedMessage() + "\n" + ex.toString()));
         }
     }
 }

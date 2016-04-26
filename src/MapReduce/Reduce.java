@@ -37,24 +37,30 @@ public class Reduce extends Reducer<Text, Text, Text, Text>
                 infoRule ir = infoMap.get(param[0]);
                 ir.addPositives(Integer.parseInt(param[1]));
                 ir.addNegatives(Integer.parseInt(param[2]));
+                ir.addPi(Double.parseDouble(param[4]));
+                ir.increaseCount();
             }
             
             ArrayList<infoRule> info = new ArrayList(infoMap.values());
             
-            infoRule r1 = info.get(0);
-            infoRule r2 = info.get(1);
-            infoRule max;
+            if(info.size() > 1)
+            {
+                infoRule r1 = info.get(0);
+                infoRule r2 = info.get(1);
+                infoRule max;
+                
+                if(r1.getPi() > r2.getPi()) max = r1;
+                
+                else max = r2;
+
+                //key: regla, value: nº de apariciones de la regla
+                context.write(new Text(key.toString() + max.getClassRule()), new Text(Integer.toString(max.getCount())));
+            }
+            else
+            {
+                context.write(new Text(key.toString() + info.get(0).getClassRule()), new Text(Integer.toString(info.get(0).getCount())));
+            }
             
-            if(r1.getPositives() > r2.getPositives()) max = r1;
-            
-            else if(r2.getPositives() > r1.getPositives()) max = r2;
-            
-            else if(r1.getNegatives() < r2.getNegatives()) max = r1;
-            
-            else max = r2;
-            
-            //key: regla, value: nº de apariciones de la regla
-            context.write(new Text(key.toString() + max.getClassRule()), new Text(Integer.toString(max.getCount())));
         
         }catch (Exception ex)
         {

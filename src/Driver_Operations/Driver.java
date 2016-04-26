@@ -92,9 +92,6 @@ public class Driver extends Configured implements Tool
         
         Job job = new Job(conf, "DGA");
         
-        //Establecer un número de reduces concretos
-        //job.setNumReduceTasks(1);
-        
         job.setJarByClass(Driver.class);
         
         job.setOutputKeyClass(Text.class);

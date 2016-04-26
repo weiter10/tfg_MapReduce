@@ -15,6 +15,7 @@ public class infoRule
 {
     private final String classRule;
     private int positives, negatives, count;
+    private double pi;
     
     
     public infoRule(String c)
@@ -23,18 +24,27 @@ public class infoRule
         this.positives = 0;
         this.negatives = 0;
         count = 0;
+        pi = 0;
     }
     
     public void addPositives(int p)
     {
         this.positives += p;
-        count++;
     }
     
     public void addNegatives(int n)
     {
         this.negatives += n;
+    }
+    
+    public void increaseCount()
+    {
         count++;
+    }
+    
+    public void addPi(double p)
+    {
+        pi += p;
     }
 
     public int getPositives() {
@@ -51,6 +61,10 @@ public class infoRule
 
     public int getCount() {
         return count;
+    }
+
+    public double getPi() {
+        return pi;
     }
     
     
