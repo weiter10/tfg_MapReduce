@@ -200,7 +200,7 @@ public class Algorithm
      * @param parent2
      * @return 
      */
-    public Rule[] crossing(Rule parent1, Rule parent2)
+    private Rule[] crossing(Rule parent1, Rule parent2)
     {
         double value = (parent1.getEvaluationFunction() + parent2.getEvaluationFunction())/2;
         
@@ -218,14 +218,15 @@ public class Algorithm
      * en la reproducción
      * @return
      */
-    public ArrayList<Rule> universalSuffrage()
+    private ArrayList<Rule> universalSuffrage()
     {
         int numVoters = (int) (sizePopulation*0.9);
-        int posi;
+        int posi, getMoreExamples = 0;
         Set<Integer> voters = new HashSet();
         ArrayList<Rule> outputRules = new ArrayList();
         ArrayList<Example> data = dataset.getData();
         ArrayList<Integer> validExamples = new ArrayList(dataset.getValidExamples());
+        ArrayList<ArrayList<Integer>> validExamplesClasses = dataset.getValidExamplesByClasses();
         PriorityQueue<Rule> ruleOrder = new PriorityQueue(Collections.reverseOrder());//Ordenamos las reglas de mayor bondad a menor;
         Rule[] tabRoulette;
         double sum, acc, doubleD;
@@ -235,12 +236,32 @@ public class Algorithm
         
         if(numVoters%2 != 0) numVoters--;//Obligamos a que los padres sean pares
         
-        //Seleccionamos los índices de los ejemplos votantes
-        for (int i = 0; i < numVoters; i++)
+        //Comprobamos si alguna clase tiene menos ejemplos de los necesarios, si es así
+        //cogemos el resto de ejemplo de la otra clase
+        for(ArrayList<Integer> a1 : validExamplesClasses)
         {
-            posi = rnd.nextInt(validExamples.size());
-            voters.add(validExamples.get(posi));
-            validExamples.remove(posi);
+            int numVotersClass = numVoters/2;
+            
+            if(numVotersClass > a1.size()) getMoreExamples = numVotersClass - a1.size();
+        }
+        
+        //Cogemos los ejemplos de cada clase
+        for(ArrayList<Integer> a1 : validExamplesClasses)
+        {
+            int numVotersClass = numVoters/2;
+            ArrayList<Integer> validExamplesClass = new ArrayList(a1);
+            
+            if(numVotersClass > validExamplesClass.size()) numVotersClass = validExamplesClass.size();
+            
+            else numVotersClass += getMoreExamples;
+            
+            //Seleccionamos los índices de los ejemplos votantes
+            for (int i = 0; i < numVotersClass; i++)
+            {
+                posi = rnd.nextInt(validExamplesClass.size());
+                voters.add(validExamplesClass.get(posi));
+                validExamplesClass.remove(posi);
+            }
         }
         
         //Realizamos el sufragio
@@ -322,7 +343,7 @@ public class Algorithm
      * @param ex
      * @return 
      */
-    public Rule sownOperator(Example ex)
+    private Rule sownOperator(Example ex)
     {
         int[] pattern = ex.getPattern();
         Rule rule;
@@ -340,7 +361,7 @@ public class Algorithm
      * Generación de la población inicial
      * @return 
      */
-    public Set<Rule> generateInitialPopulation()
+    private Set<Rule> generateInitialPopulation()
     {
         ArrayList<Example> data = dataset.getData();
         ArrayList<Integer> validExamples = new ArrayList(dataset.getValidExamples());
@@ -368,7 +389,7 @@ public class Algorithm
      * @param parent2
      * @return 
      */
-    public Rule[] twoPointsCrossing(Rule parent1, Rule parent2)
+    private Rule[] twoPointsCrossing(Rule parent1, Rule parent2)
     {
         Rule[] rules = new Rule[2];
         rules[0] = new Rule(parent1);
@@ -417,7 +438,7 @@ public class Algorithm
      * pertenecer a una regla padre1 o a la padre2.
      *
      */
-    public Rule[] uniformCrossing(Rule parent1, Rule parent2)
+    private Rule[] uniformCrossing(Rule parent1, Rule parent2)
     {
         int sizeChromosome = parent1.getSizeChromosome()-parent1.getClassAttribute().size();
         Rule[] rules = new Rule[2];
@@ -455,7 +476,7 @@ public class Algorithm
      * tesis
      * @param rule 
      */
-    public void mutate(Rule rule)
+    private void mutate(Rule rule)
     {
         double mutationP = 0.001, evaluationFunctionRule = rule.getEvaluationFunction(),
                 meanEvaluationFuncton = this.getMeanEvaluationFunction();
@@ -489,7 +510,7 @@ public class Algorithm
      * Obtiene la media de la función de evaluación de la población
      * @return 
      */
-    public double getMeanEvaluationFunction()
+    private double getMeanEvaluationFunction()
     {
         double acc = 0;
         
