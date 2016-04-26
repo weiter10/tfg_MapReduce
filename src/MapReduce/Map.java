@@ -72,7 +72,19 @@ public class Map extends Mapper<LongWritable, Text, Text, Text>
             Algorithm alg = new Algorithm(value.toString(),rnd);
             Set<Rule> finalRules = alg.run();
             
-            for(Rule r : finalRules) context.write(new Text(r.toString()), new Text("1"));
+            for(Rule r : finalRules)
+                context.write(new Text(r.getStrBody()), new Text(r.getClassAttribute()
+                        + "\t" + r.getPositives() + "\t" + r.getNegatives() +
+                        "\t" + r.getEvaluationFunction() + "\t" + r.getPi()));
+            
+            //Key: cuerpo de la regla
+            
+            //Value:
+            //1 Clase
+            //2 Num ejemplos pos
+            //3 Num ejemplos neg
+            //4 func. evaluzación
+            //5 pi
             
         }catch (Exception ex)
         {

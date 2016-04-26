@@ -178,11 +178,11 @@ public class Algorithm
             Rule r = this.sownOperator(this.dataset.getData().get(validExamples.iterator().next()));
             this.finalRules.add(r);
         }
-        /*
+        
         dataset.resetValidExamples();
         
         for(Rule r : this.finalRules) r.updatePerformance();
-        */
+        
         
         System.out.println("countFail: " + countFail);
         System.out.println("countGood: " + countGood);

@@ -281,6 +281,14 @@ public final class Rule extends Row implements Comparable
     {
         return this.getClassAttribute().toString();
     }
+
+    public int getPositives() {
+        return positives;
+    }
+
+    public int getNegatives() {
+        return negatives;
+    }
     
     
     public static Comparator<Rule> comparatorByEF()
