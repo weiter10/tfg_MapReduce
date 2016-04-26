@@ -142,10 +142,13 @@ public class Driver extends Configured implements Tool
         ToolRunner.run(new HdfsWriter(), new String[] {"/input/dataset"});
         BufferedWriter br = HdfsWriter.br;
         
+        //El IR del dataset que recibe el genético va a ser 1
+        int irAGL = 1;
+        
         for (int i = 0; i < (int)iR; i++)
         {
             value = (i*positiveSize)+1;
-            line = iR + "\t" + positiveExamples + DataBase.getDataBinaryFormat(Driver.nameTableNeg, numBits, value, value+positiveSize-1) + "\n";
+            line = irAGL + "\t" + positiveExamples + DataBase.getDataBinaryFormat(Driver.nameTableNeg, numBits, value, value+positiveSize-1) + "\n";
             br.write(line);//Escribimos en HDFS
         }
         
@@ -156,7 +159,7 @@ public class Driver extends Configured implements Tool
             value = (((int)iR)*positiveSize)+1;
             sizeSubsection = positiveSize - (negativeSize - (((int)iR) * positiveSize));
             //Obtenemos el spilt final
-            line = iR + "\t" + positiveExamples + DataBase.getDataBinaryFormat(Driver.nameTableNeg, numBits, value, negativeSize);
+            line = irAGL + "\t" + positiveExamples + DataBase.getDataBinaryFormat(Driver.nameTableNeg, numBits, value, negativeSize);
             //le añadimos el trozo faltante con ejemplos del primer split
             line += DataBase.getDataBinaryFormat(Driver.nameTableNeg, numBits, 1, sizeSubsection) + "\n";
             br.write(line);//Escribimos en HDFS

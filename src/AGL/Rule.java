@@ -61,8 +61,18 @@ public final class Rule extends Row implements Comparable
         }
         
         valueD = 1 + ((double)this.getNumZeros()/(this.getSizeChromosome()-this.getClassAttribute().size()));
-        evaluationFunction = Math.pow(valueD, -negatives);
-        pi = positives*evaluationFunction;
+        
+        //Clase minoriataria, multiplicamos por el IR
+        if(this.getClassAttribute().equals(parse.getMinorClass()))
+        {
+            evaluationFunction = Math.pow(valueD, (-negatives)*parse.getiR());
+            pi = positives*evaluationFunction*parse.getiR();
+        }
+        else
+        {
+            evaluationFunction = Math.pow(valueD, -negatives);
+            pi = positives*evaluationFunction;
+        }
     }
 
     public double getEvaluationFunction()
@@ -242,18 +252,34 @@ public final class Rule extends Row implements Comparable
     }
     
     
-    @Override
-    public String toString()
+    public String show()
     {
-        return super.toString();
+        return super.toString() + "\teF:" + this.evaluationFunction + 
+                "\tpi:" + this.pi + "\tnegatives:" + this.negatives + 
+                "\tpositives:" + this.positives;
+    }
+    
+    /**
+     * Devuelve el cuerpo de la regla
+     * @return 
+     */
+    public String getStrBody()
+    {
+        String result = "";
+        
+        for(int i = 0; i < row.length-1; i++) result += row[i].toString() + ",";
+        
+        return result;
     }
     
     
-    public String show()
+    /**
+     * Devuelve la clase de la regla
+     * @return 
+     */
+    public String getStrClass()
     {
-        return super.toString() + "eF:" + this.evaluationFunction + 
-                "\tpi:" + this.pi + "\tnegatives:" + this.negatives + 
-                "\tpositives:" + this.positives;
+        return this.getClassAttribute().toString();
     }
     
     

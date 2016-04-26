@@ -123,7 +123,7 @@ public class Attribute
     {
         String result = "";
         
-        for(char c : this.tab) result += c + ",";
+        for(char c : this.tab) result += c;
         
         return result;
     }

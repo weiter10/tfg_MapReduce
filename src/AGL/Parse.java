@@ -30,6 +30,7 @@ public final class Parse
     private final Set<Integer> validExamples;//Almacena los índices de los ejemplos 
     //válidos (aun no cubiertos por ninguna regla). Atención, el map del atributo de 
     //clase disminuye conforme se van cubriendo ejemplos.
+    private final Attribute minorClass;
     
     private float iR;
 
@@ -89,6 +90,23 @@ public final class Parse
         }
 
         this.resetValidExamples();
+        
+        //Obtenemos la clase minoritaria
+        Map<Attribute,Set<Integer>> mapClass = this.mapAtr[this.mapAtr.length-1];
+        Set<Attribute> sA = mapClass.keySet();
+        int numE = 0;
+        Attribute tmp = null;
+        
+        for(Attribute atr : sA)
+        {
+            if(numE == 0 || mapClass.get(atr).size() < numE)
+            {
+                numE = mapClass.get(atr).size();
+                tmp = atr;
+            }
+        }
+        
+        this.minorClass = tmp;
     }
     
     
@@ -135,5 +153,14 @@ public final class Parse
         for(Set<Integer> s : col) result.add(new ArrayList(s));
         
         return result;
+    }
+
+    public Attribute getMinorClass()
+    {
+        return minorClass;
+    }
+
+    public float getiR() {
+        return iR;
     }
 }

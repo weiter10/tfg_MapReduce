@@ -154,7 +154,7 @@ public abstract class Row
     {
         String result = "";
         
-        for(Attribute atr : this.row) result += "[" + atr.toString() + "] ";
+        for(Attribute atr : this.row) result += atr.toString() + ",";
         
         return result;
     }
