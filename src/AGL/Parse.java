@@ -30,6 +30,8 @@ public final class Parse
     private final Set<Integer> validExamples;//Almacena los índices de los ejemplos 
     //válidos (aun no cubiertos por ninguna regla). Atención, el map del atributo de 
     //clase disminuye conforme se van cubriendo ejemplos.
+    
+    private float iR;
 
     public Set<Integer> getValidExamples()
     {
@@ -55,10 +57,11 @@ public final class Parse
         this.validExamples = new HashSet();
 
         examples = dataString.split("\t");
-        
+        iR = Float.parseFloat(examples[0]);
         //Construimos el dataset
-        for(String example1 : examples)
+        for(int i = 1; i < examples.length; i++)
         {
+            String example1 = examples[i];
             String[] atr = example1.split(",");//Atributos del ejemplos
             attributes = new Attribute[atr.length];
             
@@ -66,28 +69,25 @@ public final class Parse
             {
                 mapAtr = new HashMap[atr.length];
                 
-                for (int i = 0; i < mapAtr.length; i++) mapAtr[i] = new HashMap();
+                for (int j = 0; j < mapAtr.length; j++) mapAtr[j] = new HashMap();
             }
             
             //Para cada atributo del ejemplo
-            for (int i = 0; i < atr.length; i++)
+            for (int j = 0; j < atr.length; j++)
             {
-                at = new Attribute(atr[i].toCharArray());
+                at = new Attribute(atr[j].toCharArray());
                 
-                if(!mapAtr[i].containsKey(at)) mapAtr[i].put(at, new HashSet());
+                if(!mapAtr[j].containsKey(at)) mapAtr[j].put(at, new HashSet());
                 
                 //Añadimos indice del ejemplo con el valor del atributo
-                mapAtr[i].get(at).add(data.size());
-                attributes[i] = at;
+                mapAtr[j].get(at).add(data.size());
+                attributes[j] = at;
             }
             
             //añadimos el ejemplo al dataset
             this.data.add(new Example(attributes));
         }
-        
-        Map<Attribute,Set<Integer>> mapClass = this.mapAtr[this.mapAtr.length-1];
-        Set<Attribute> classes = mapClass.keySet();
-        
+
         this.resetValidExamples();
     }
     
