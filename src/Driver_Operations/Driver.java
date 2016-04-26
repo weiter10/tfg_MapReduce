@@ -75,12 +75,12 @@ public class Driver extends Configured implements Tool
         
         //Escribimos el resultado en el almacenamiento local
         ToolRunner.run(new HdfsReaderExt(), args2);
-        
+        /*
         //Escritura del fichero de entrada de los MAP en el almacenamiento local
         args2[0] = "/input/dataset";
         args2[1] = "/home/manu/smallHDFS";
         ToolRunner.run(new HdfsReaderExt(), args2);
-        
+        */
         System.exit(0);
         
     }
