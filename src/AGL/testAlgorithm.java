@@ -66,7 +66,7 @@ public class testAlgorithm
         */
         
         
-        File archivo = new File("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/smallHDFS");
+        File archivo = new File("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/datasetHDFS");
         FileReader fr = new FileReader (archivo);
         BufferedReader br = new BufferedReader(fr);
         
@@ -76,7 +76,7 @@ public class testAlgorithm
         
         int size = p.size();
         
-        while(!p.isEmpty()) System.out.println(p.poll().toString());
+        while(!p.isEmpty()) System.out.println(p.poll().show());
         
         System.out.println("Number of rules: " + size);
         

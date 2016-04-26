@@ -11,8 +11,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +28,8 @@ public final class Parse
     private Map<Attribute,Set<Integer>>[] mapAtr = null;//Almacena, para cada atributo,
     //en que ejemplos se dan los valores
     private final Set<Integer> validExamples;//Almacena los índices de los ejemplos 
-    //válidos (aun no cubiertos por ninguna regla)
+    //válidos (aun no cubiertos por ninguna regla). Atención, el map del atributo de 
+    //clase disminuye conforme se van cubriendo ejemplos.
 
     public Set<Integer> getValidExamples()
     {
@@ -75,12 +78,15 @@ public final class Parse
                 
                 //Añadimos indice del ejemplo con el valor del atributo
                 mapAtr[i].get(at).add(data.size());
-                attributes[i] = at;                
+                attributes[i] = at;
             }
             
             //añadimos el ejemplo al dataset
             this.data.add(new Example(attributes));
         }
+        
+        Map<Attribute,Set<Integer>> mapClass = this.mapAtr[this.mapAtr.length-1];
+        Set<Attribute> classes = mapClass.keySet();
         
         this.resetValidExamples();
     }
@@ -109,6 +115,25 @@ public final class Parse
             if(rule.coverExample(example) == 1) coveredExamples.add(index);
         }
         
+        //Quitamos los ejemplos del conjunto general
         this.validExamples.removeAll(coveredExamples);
+        Map<Attribute,Set<Integer>> mapClass = this.mapAtr[this.mapAtr.length-1];
+        //Quitamos los ejemplos del conjunto al que clasifica la regla (clase)
+        mapClass.get(rule.getClassAttribute()).removeAll(coveredExamples);
+    }
+    
+    /**
+     * Devuelve los conjuntos donde almacenan los ejemplos válidos para cada clase
+     * @return 
+     */
+    public ArrayList<ArrayList<Integer>> getValidExamplesByClasses()
+    {
+        Map<Attribute,Set<Integer>> mapClass = this.mapAtr[this.mapAtr.length-1];
+        Collection<Set<Integer>> col = mapClass.values();
+        ArrayList<ArrayList<Integer>> result = new ArrayList();
+        
+        for(Set<Integer> s : col) result.add(new ArrayList(s));
+        
+        return result;
     }
 }

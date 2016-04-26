@@ -249,6 +249,14 @@ public final class Rule extends Row implements Comparable
     }
     
     
+    public String show()
+    {
+        return super.toString() + "eF:" + this.evaluationFunction + 
+                "\tpi:" + this.pi + "\tnegatives:" + this.negatives + 
+                "\tpositives:" + this.positives;
+    }
+    
+    
     public static Comparator<Rule> comparatorByEF()
     {
         return new Comparator()
