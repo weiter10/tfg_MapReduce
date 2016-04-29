@@ -61,7 +61,7 @@ public class Driver extends Configured implements Tool
         ParseFileFromLocal.parse(args[0], args[1], Integer.parseInt(args[2]));
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Data warehouse OK");
         //--
-        
+        /*
         //Generamos el fichero a través del cual se lanzarán los Map
         Driver.generateBigFile();
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
