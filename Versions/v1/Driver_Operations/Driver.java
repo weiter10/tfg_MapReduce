@@ -38,13 +38,9 @@ import org.apache.hadoop.util.ToolRunner;
  */
 public class Driver extends Configured implements Tool
 {
-    public static String nameBigTablePos = "positiveexamples",
-            nameBigTableNeg = "negativeexamples",
-            nameTableTrainingPos = "positiveexamplestraining",
-            nameTableTrainingNeg = "negativeexamplestraining",
-            nameTestTableTest = "testset";
+    public static String nameTablePos = "positiveexamples",
+            nameTableNeg = "negativeexamples";
     
-    public static int numAttributes;
     
     public static void main(String[] args) throws Exception
     {

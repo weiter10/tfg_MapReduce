@@ -46,7 +46,6 @@ public abstract class ParseFileFromLocal
         lineSplit = line.split(cvsSplitBy);
         numAtr = lineSplit.length;
         numCol = numAtr+1;
-        Driver.numAttributes = numAtr;
         
         DataBase.dropTable(Driver.nameTablePos);
         DataBase.dropTable(Driver.nameTableNeg);
@@ -123,11 +122,7 @@ public abstract class ParseFileFromLocal
                 
                 else insertPositives = insertTmp;
                 
-                if(insertPositives.length() > limit)
-                {
-                    DataBase.insert(Driver.nameTablePos, insertPositives);
-                    insertPositives = "";
-                }
+                if(insertPositives.length() > limit) DataBase.insert(Driver.nameTablePos, insertPositives);
             }
             else
             {
@@ -138,11 +133,7 @@ public abstract class ParseFileFromLocal
                 
                 else insertNegatives = insertTmp;
                 
-                if(insertNegatives.length() > limit)
-                {
-                    DataBase.insert(Driver.nameTableNeg, insertNegatives);
-                    insertNegatives = "";
-                }
+                if(insertNegatives.length() > limit) DataBase.insert(Driver.nameTableNeg, insertNegatives);
             }
             //--
         }

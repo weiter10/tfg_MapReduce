@@ -22,7 +22,7 @@ public abstract class DataBase
 {
     private static String atr = null;
     private static String toDefineAtr = null;
-    private static String atrNum = null;
+    
     
     public static void describeAllTables()
     {
@@ -73,13 +73,13 @@ public abstract class DataBase
     }
     
     
-    public static void createBigTable(String tableName, int numCol)
+    public static void createTable(String tableName, int numCol)
     {
         try
         {
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
-            atrNum = "";
+            String atrNum = "";
             atr = "";
             toDefineAtr = "";
             
@@ -102,85 +102,6 @@ public abstract class DataBase
             con.close();
             
             System.out.println("Create OK");
-
-        } catch (SQLException ex)
-        {
-            Logger.getLogger(Driver.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    
-    /**
-     * Crea una tabla con el nombre recibido + "Training" para training a partir
-     * de la tabla indicada como parámetro y con los trozos indicados
-     * @param source
-     * @param tableName
-     * @param folds 
-     */
-    public static void createTrainingTable(String source, String tableName, int[] folds)
-    {
-        try
-        {
-            Connection con = HiveConnect.getConnection();
-            Statement stmt = con.createStatement();
-            String query, insertTmp, line, insert = null;
-            int limit = Integer.MAX_VALUE/2;
-            long count = 0;
-            atr = "";
-            toDefineAtr = "";
-            
-            query = "SELECT " + atr.substring(1) + " FROM " + source + " WHERE";
-            
-            //Contruimos la query
-            for (int i = 0; i < folds.length; i++)
-            {
-                if(i == 0) query += " fold = " + folds[i];
-                
-                else query += " or fold = " + folds[i];
-            }
-            
-            //Ejecutamos la consulta y nos traemos los datos
-            ResultSet rs = stmt.executeQuery(query);
-            
-            DataBase.dropTable(tableName);
-            
-            stmt.execute("CREATE TABLE IF NOT EXISTS " + tableName
-                + " (" + atrNum + " id BIGINT)"
-                + " ROW FORMAT DELIMITED"
-                + " FIELDS TERMINATED BY ','"
-                + " LINES TERMINATED BY '\n'"
-                + " STORED AS TEXTFILE");
-            
-            //Copiamos los datos a la nueva tabla
-            while (rs.next())
-            {
-                insertTmp = "(";
-                
-                for (int i = 1; i <= Driver.numAttributes; i++)
-                    insertTmp += rs.getInt(i) + ",";
-                
-                insertTmp += count + ")";
-                count++;
-                
-                if(insert == null) insert = insertTmp;
-                
-                else insert += "," + insertTmp;
-                
-                //Si el String ha alcazado un tamaño considerable lo guardamos
-                //en la BD
-                if(insert.length() > limit)
-                {
-                    DataBase.insert(tableName, insert);
-                    insert = "";
-                }
-            }
-            
-            //Grabamos los datos restantes
-            DataBase.insert(tableName, insert);
-            
-            con.close();
-            
-            System.out.println("Create training table " + tableName + " OK");
 
         } catch (SQLException ex)
         {
