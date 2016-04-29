@@ -57,6 +57,7 @@ public class HdfsReaderExt extends Configured implements Tool
                 System.out.println(line);
         }
         */
+        fs.close();
         return 0;
     }
 }

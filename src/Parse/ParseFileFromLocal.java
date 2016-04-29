@@ -37,9 +37,8 @@ public abstract class ParseFileFromLocal
         String line, cvsSplitBy = ",", insertTmp, insertPositives = "",
                 insertNegatives = "";
         String[] lineSplit;
-        long countNegClass = 0;
-        long countPosClass = 0;
-        int numCol, numAtr, limit = Integer.MAX_VALUE/2;
+        int numCol, numAtr, limit = Integer.MAX_VALUE/2, foldPositive = 1,
+                foldNegative = 1;
 
         //Leemos una linea del fichero para poder crear las dos tablas
         line = br.readLine();
@@ -48,10 +47,10 @@ public abstract class ParseFileFromLocal
         numCol = numAtr+1;
         Driver.numAttributes = numAtr;
         
-        DataBase.dropTable(Driver.nameTablePos);
-        DataBase.dropTable(Driver.nameTableNeg);
-        DataBase.createTable(Driver.nameTablePos, numCol);
-        DataBase.createTable(Driver.nameTableNeg, numCol);
+        DataBase.dropTable(Driver.nameBigTablePos);
+        DataBase.dropTable(Driver.nameBigTableNeg);
+        DataBase.createBigTable(Driver.nameBigTablePos, numCol);
+        DataBase.createBigTable(Driver.nameBigTableNeg, numCol);
         
         //Inicializamos las variables privadas
         inside = new Map[numAtr];
@@ -83,14 +82,14 @@ public abstract class ParseFileFromLocal
         
         if(posiClass.equals(lineSplit[numAtr-1]))
         {
-            countPosClass++;
-            insertTmp += countPosClass + ")";
+            insertTmp += foldPositive + ")";
+            foldPositive++;
             insertPositives += insertTmp;
         }
         else
         {
-            countNegClass++;
-            insertTmp += countNegClass + ")";
+            insertTmp += foldNegative + ")";
+            foldNegative++;
             insertNegatives += insertTmp;
         }
         //--
@@ -116,8 +115,10 @@ public abstract class ParseFileFromLocal
 
             if(posiClass.equals(lineSplit[numAtr-1]))
             {
-                countPosClass++;
-                insertTmp += countPosClass + ")";
+                insertTmp += foldPositive + ")";
+                foldPositive++;
+                
+                if(foldPositive > 5) foldPositive = 1;
                 
                 if(!insertPositives.equals("")) insertPositives += "," + insertTmp;
                 
@@ -125,14 +126,16 @@ public abstract class ParseFileFromLocal
                 
                 if(insertPositives.length() > limit)
                 {
-                    DataBase.insert(Driver.nameTablePos, insertPositives);
+                    DataBase.insert(Driver.nameBigTablePos, insertPositives);
                     insertPositives = "";
                 }
             }
             else
             {
-                countNegClass++;
-                insertTmp += countNegClass + ")";
+                insertTmp += foldNegative + ")";
+                foldNegative++;
+                
+                if(foldNegative > 5) foldNegative = 1;
                 
                 if(!insertNegatives.equals("")) insertNegatives += "," + insertTmp;
                 
@@ -140,7 +143,7 @@ public abstract class ParseFileFromLocal
                 
                 if(insertNegatives.length() > limit)
                 {
-                    DataBase.insert(Driver.nameTableNeg, insertNegatives);
+                    DataBase.insert(Driver.nameBigTableNeg, insertNegatives);
                     insertNegatives = "";
                 }
             }
@@ -151,8 +154,8 @@ public abstract class ParseFileFromLocal
         System.out.println("$$$$$$$$$$$$$$$$$$$$$$$-> Final insert...");
         
         //Insertamos los datos restantes
-        DataBase.insert(Driver.nameTablePos, insertPositives);
-        DataBase.insert(Driver.nameTableNeg, insertNegatives);
+        DataBase.insert(Driver.nameBigTablePos, insertPositives);
+        DataBase.insert(Driver.nameBigTableNeg, insertNegatives);
         //--
     }
     

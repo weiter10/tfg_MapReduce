@@ -93,7 +93,7 @@ public abstract class DataBase
             }
             
             stmt.execute("CREATE TABLE IF NOT EXISTS " + tableName
-                + " (" + atrNum + " id BIGINT)"
+                + " (" + atrNum + " fold INT)"
                 + " ROW FORMAT DELIMITED"
                 + " FIELDS TERMINATED BY ','"
                 + " LINES TERMINATED BY '\n'"
@@ -123,11 +123,9 @@ public abstract class DataBase
         {
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
-            String query, insertTmp, line, insert = null;
+            String query, insertTmp, insert = null;
             int limit = Integer.MAX_VALUE/2;
-            long count = 0;
-            atr = "";
-            toDefineAtr = "";
+            long count = 1;
             
             query = "SELECT " + atr.substring(1) + " FROM " + source + " WHERE";
             
@@ -140,7 +138,6 @@ public abstract class DataBase
             }
             
             //Ejecutamos la consulta y nos traemos los datos
-            ResultSet rs = stmt.executeQuery(query);
             
             DataBase.dropTable(tableName);
             
@@ -150,6 +147,8 @@ public abstract class DataBase
                 + " FIELDS TERMINATED BY ','"
                 + " LINES TERMINATED BY '\n'"
                 + " STORED AS TEXTFILE");
+            
+            ResultSet rs = stmt.executeQuery(query);
             
             //Copiamos los datos a la nueva tabla
             while (rs.next())

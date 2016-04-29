@@ -22,7 +22,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-public class HdfsWriter extends Configured implements Tool
+public class HdfsRemove extends Configured implements Tool
 {
     public static final String FS_PARAM_NAME = "fs.defaultFS";
     public static BufferedWriter br;
@@ -30,22 +30,9 @@ public class HdfsWriter extends Configured implements Tool
     @Override
     public int run(String[] args) throws Exception
     {
-        Path outputPath = new Path(args[0]);
-
-        Configuration conf = getConf();
-        System.out.println("configured filesystem = " + conf.get(FS_PARAM_NAME));
-        FileSystem fs = FileSystem.get(conf);
-        
-        /*
-        if (fs.exists(outputPath))
-        {
-            System.err.println("output path exists");
-            return 1;
-        }
-        */
-        
-        HdfsWriter.br = new BufferedWriter(new OutputStreamWriter(fs.create(outputPath,true)));
-                                   // TO append data to a file, use fs.append(Path f)
+        FileSystem fs = FileSystem.get(getConf());
+        fs.delete(new Path(args[0]), true); // delete file, true for recursive 
+        fs.close();
         return 0;
     }
     

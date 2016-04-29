@@ -66,7 +66,8 @@ public class testAlgorithm
         */
         
         
-        File archivo = new File("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/datasetHDFS");
+        //File archivo = new File("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/datasetHDFS");
+        File archivo = new File("/home/manu/datasetHDFS");
         FileReader fr = new FileReader (archivo);
         BufferedReader br = new BufferedReader(fr);
         
