@@ -5,7 +5,8 @@
  */
 package MapReduce;
 
-import AGL.Rule;
+import org.apache.commons.lang.StringUtils;
+
 
 /**
  *
@@ -14,17 +15,24 @@ import AGL.Rule;
 public class infoRule
 {
     private final String classRule;
-    private int positives, negatives, count;
+    private int positives, negatives, count, numZeros, sizeChromosome;
     private double pi;
     
     
-    public infoRule(String c)
+    public infoRule(String cl, String rule)
     {
-        this.classRule = c;
+        this.classRule = cl;
         this.positives = 0;
         this.negatives = 0;
+        this.numZeros = 0;
+        this.sizeChromosome = rule.length();
         count = 0;
         pi = 0;
+        char[] pal = rule.toCharArray();
+        
+        for(char c : pal)
+            if(c == '0')
+                this.numZeros++;
     }
     
     public void addPositives(int p)
@@ -40,11 +48,6 @@ public class infoRule
     public void increaseCount()
     {
         count++;
-    }
-    
-    public void addPi(double p)
-    {
-        pi += p;
     }
 
     public int getPositives() {
@@ -67,5 +70,10 @@ public class infoRule
         return pi;
     }
     
-    
+    public void calculatePi()
+    {
+        double valueD = 1 + ((double)this.numZeros/sizeChromosome);
+        double evaluationFunction = Math.pow(valueD, -negatives);
+        pi = positives*evaluationFunction*count;
+    }
 }

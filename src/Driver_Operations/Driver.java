@@ -38,7 +38,7 @@ import org.apache.hadoop.util.ToolRunner;
  *
  * @author manu
  */
-public class Driver extends Configured implements Tool
+public class Driver
 {
     public static String nameBigTablePos = "positiveexamples",
             nameBigTableNeg = "negativeexamples",
@@ -67,7 +67,7 @@ public class Driver extends Configured implements Tool
         //--
         
         //Generamos 5 cross validation
-        for (int i = 1; i <= 5; i++)
+        for (int i = 1; i <= 1; i++)
         {
             //Borramos el directorio de salida de trabajos MapReduce
             args2[0] = "/output";
@@ -81,7 +81,7 @@ public class Driver extends Configured implements Tool
 
             //Lanzamos la tarea
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting job " + i);
-            ToolRunner.run(new Driver(), args);
+            ToolRunner.run(new JobAlgorithm(), args);
             
             //args2[0] = "/output/part-r-00000";
             args2[0] = "/output/part-r-00000";
@@ -100,32 +100,6 @@ public class Driver extends Configured implements Tool
         
     }
 
-    @Override
-    public int run(String[] args) throws Exception
-    {
-        Configuration conf = getConf();
-        
-        Job job = new Job(conf, "DGA");
-        
-        job.setJarByClass(Driver.class);
-        
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
-
-        job.setMapperClass(Map.class);
-        job.setReducerClass(Reduce.class);
-
-        job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
-        
-        FileInputFormat.addInputPath(job, new Path("/input/dataset"));
-        FileOutputFormat.setOutputPath(job, new Path("/output"));
-        
-        job.waitForCompletion(true);
-        
-        return 0;
-    }
-    
     
     public static float calculateIR()
     {

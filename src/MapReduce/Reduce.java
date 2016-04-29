@@ -27,40 +27,49 @@ public class Reduce extends Reducer<Text, Text, Text, Text>
         {
             //Clave: clase, valor: información acumulada para esa clase
             Map<String,infoRule> infoMap = new HashMap();
+             infoRule max = null;
 
             for(Text value : values)
             {
                 String[] param = value.toString().split("\t");
                 
-                if(!infoMap.containsKey(param[0])) infoMap.put(param[0], new infoRule(param[0]));
+                if(!infoMap.containsKey(param[0])) infoMap.put(param[0], new infoRule(param[0], key.toString()));
                 
                 infoRule ir = infoMap.get(param[0]);
                 ir.addPositives(Integer.parseInt(param[1]));
                 ir.addNegatives(Integer.parseInt(param[2]));
-                ir.addPi(Double.parseDouble(param[4]));
                 ir.increaseCount();
             }
             
             ArrayList<infoRule> info = new ArrayList(infoMap.values());
             
+            for(infoRule in : info) in.calculatePi();
+            
             if(info.size() > 1)
             {
                 infoRule r1 = info.get(0);
                 infoRule r2 = info.get(1);
-                infoRule max;
+               
                 
                 if(r1.getPi() > r2.getPi()) max = r1;
                 
                 else max = r2;
-
-                //key: regla, value: nº de apariciones de la regla
-                context.write(new Text(key.toString() + max.getClassRule()), new Text(Integer.toString(max.getCount())));
             }
             else
             {
-                context.write(new Text(key.toString() + info.get(0).getClassRule()), new Text(Integer.toString(info.get(0).getCount())));
+                max = info.get(0);
             }
-            
+            /*
+            key: regla
+            value:
+            1 nº de apariciones de la regla
+            2 nº positivos
+            3 nº negativos
+            4 pi'
+            */
+            context.write(new Text(key.toString() + max.getClassRule()), new Text(
+                    "\t" + Integer.toString(max.getCount()) + "\t" + max.getPositives() + 
+                    "\t" + max.getNegatives() + "\t" + max.getPi()));
         
         }catch (Exception ex)
         {
