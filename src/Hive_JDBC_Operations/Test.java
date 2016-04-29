@@ -5,6 +5,8 @@
  */
 package Hive_JDBC_Operations;
 
+import Driver_Operations.Driver;
+
 /**
  *
  * @author manu
@@ -13,6 +15,8 @@ public abstract class Test
 {
     public static void main(String[] args)
     {
-        DataBase.doQuery("SELECT * FROM negativeexamples WHERE id >= 1500 and id <= 1515");
+        int[] fold = {1,2,3,4,5};
+        
+        DataBase.createTrainingTable(Driver.nameBigTablePos, Driver.nameTableTrainingPos, fold);
     }
 }
