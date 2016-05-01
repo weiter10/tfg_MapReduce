@@ -478,7 +478,7 @@ public abstract class DataBase
     
     
     public static long getNumRows(String tableName)
-    {        
+    {
         try
         {
             Connection con = HiveConnect.getConnection();
@@ -507,6 +507,7 @@ public abstract class DataBase
             }
             
             con.close();
+            
             
             return numCol;
             
