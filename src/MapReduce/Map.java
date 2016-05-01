@@ -89,7 +89,7 @@ public class Map extends Mapper<LongWritable, Text, Text, Text>
             
         }catch (Exception ex)
         {
-            context.write(new Text("Error"), new Text(ex.getMessage() + "\n" + 
+            context.write(new Text("Error MAP"), new Text(ex.getMessage() + "\n" + 
                     ex.getLocalizedMessage() + "\n" + ex.toString()));
         }
     }

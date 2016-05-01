@@ -44,9 +44,10 @@ public class Driver
             nameBigTableNeg = "negativeexamples",
             nameTableTrainingPos = "positiveexamplestraining",
             nameTableTrainingNeg = "negativeexamplestraining",
-            nameTestTableTest = "testset";
+            nameTestTableTest = "testset",
+            nameRuleTable = "tabrules";
     
-    public static int numAttributes;
+    public static int numAttributes, limit = Integer.MAX_VALUE/4;
     
     public static void main(String[] args) throws Exception
     {
@@ -75,29 +76,61 @@ public class Driver
             ToolRunner.run(new HdfsRemove(), args2);
             
             //Generamos el fichero a través del cual se lanzarán los Map
-            Driver.generateBigFile(i);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing Dataset in HDFS OK");
+            Driver.generateTrainingSetFile(i);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
-
-
+            
             //Lanzamos la tarea
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting job " + i);
             ToolRunner.run(new JobAlgorithm(), args);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job " + i + " OK");
             
-            //args2[0] = "/output/part-r-00000";
+            //Escribimos el resultado en el almacenamiento local
             args2[0] = "/output/part-r-00000";
             args2[1] = args[3] + i;
-
-            //Escribimos el resultado en el almacenamiento local
             ToolRunner.run(new HdfsReaderExt(), args2);
-
+            
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
             args2[0] = "/input/dataset";
             args2[1] = "/home/manu/datasetHDFS" + i;
             ToolRunner.run(new HdfsReaderExt(), args2);
+            
+            //Introducimos las reglas en Hive
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing rules in Hive OK");
+            DataBase.createRuleTable(Driver.nameRuleTable);
+            DataBase.load(Driver.nameRuleTable,"/output/part-r-00000");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Rules write in Hive OK");
+            
+            //Creamos el fichero de entrada con las reglas y el testset
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing testSet in HDFS OK");
+            Driver.generateTestSetFile(i);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> TestSet write in HDFS OK");
+            
+            //Escritura del fichero de entrada de los MAP en el almacenamiento local
+            args2[0] = "/input/testset";
+            args2[1] = "/home/manu/testsetHDFS" + i;
+            ToolRunner.run(new HdfsReaderExt(), args2);
+            
+            //Lanzamos el MR que determinará la precisión del clasificador
         }
         
         System.exit(0);
+    }
+    
+    
+    public static void generateTestSetFile(int testFold) throws Exception
+    {
+        int[] numBits = ParseFileFromLocal.getNumBits();
         
+        //Obtenemos el buffer de escritura en HDFS
+        ToolRunner.run(new HdfsWriter(), new String[] {"/input/testset"});
+        BufferedWriter br = HdfsWriter.br;
+        
+        //Escribimos las reglas en el fichero
+        DataBase.writeTestSet(Driver.nameBigTablePos, Driver.nameBigTableNeg,
+                Driver.nameRuleTable, testFold, numBits, br);
+        
+        br.close();
     }
 
     
@@ -110,9 +143,8 @@ public class Driver
     }
     
     
-    public static void generateBigFile(int testFold) throws Exception
+    public static void generateTrainingSetFile(int testFold) throws Exception
     {
-        String positiveExamples, line;
         long positiveSize, negativeSize;
         long value, sizeSubsection;
         int[] numBits, trainingFolds = new int[4];
@@ -137,7 +169,6 @@ public class Driver
         numBits = ParseFileFromLocal.getNumBits();
         positiveSize = DataBase.getNumRows(Driver.nameTableTrainingPos);
         negativeSize = DataBase.getNumRows(Driver.nameTableTrainingNeg);
-        positiveExamples = DataBase.getDataBinaryFormat(Driver.nameTableTrainingPos, numBits, 1, positiveSize);
         
         //Obtenemos el buffer de escritura en HDFS
         ToolRunner.run(new HdfsWriter(), new String[] {"/input/dataset"});
@@ -150,8 +181,13 @@ public class Driver
         for (int i = 0; i < (int)iR; i++)
         {
             value = (i*positiveSize)+1;
-            line = irAGL + "\t" + positiveExamples + DataBase.getDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, value, value+positiveSize-1) + "\n";
-            br.write(line);//Escribimos en HDFS
+            //Escribimos el IR
+            br.write(irAGL + "\t");
+            //Escribimos los ejemplos positivos
+            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingPos, numBits, 1, positiveSize, br);
+            //Escribimos los ejemplos negativos
+            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, value, value+positiveSize-1, br);
+            br.write("\n");
         }
         
         //Comprobamos si existe un último split que no tenía suficientes ejemplos
@@ -161,10 +197,15 @@ public class Driver
             value = (((int)iR)*positiveSize)+1;
             sizeSubsection = positiveSize - (negativeSize - (((int)iR) * positiveSize));
             //Obtenemos el spilt final
-            line = irAGL + "\t" + positiveExamples + DataBase.getDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, value, negativeSize);
-            //le añadimos el trozo faltante con ejemplos del primer split
-            line += DataBase.getDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, 1, sizeSubsection) + "\n";
-            br.write(line);//Escribimos en HDFS
+            //Escribimos el IR
+            br.write(irAGL + "\t");
+            //Escribimos los ejemplos positivos
+            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingPos, numBits, 1, positiveSize, br);
+            //Escribimos los ejemplos negativos
+            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, value, negativeSize, br);
+            //Le añadimos el trozo faltante con ejemplos del primer split
+            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, 1, sizeSubsection, br);
+            br.write("\n");
         }
         
         br.close();//Cerramos el buffer de escritura HDFS

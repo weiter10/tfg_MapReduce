@@ -17,6 +17,6 @@ public abstract class Test
     {
         int[] fold = {1,2,3,4,5};
         
-        DataBase.createTrainingTable(Driver.nameBigTablePos, Driver.nameTableTrainingPos, fold);
+        System.out.println(DataBase.getNumRows(Driver.nameBigTablePos));
     }
 }
