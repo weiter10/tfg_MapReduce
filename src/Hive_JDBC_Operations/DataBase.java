@@ -6,6 +6,8 @@
 package Hive_JDBC_Operations;
 
 import Driver_Operations.Driver;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -187,6 +189,107 @@ public abstract class DataBase
         }
     }
     
+    /**
+     * Escribe en el fichero: el nº de reglas, las reglas y el testSet. Por cada GB
+     * de datos se genera un nuevo MAP (una nueva linea en el fichero)
+     * @param sourceTestSetPos
+     * @param sourceTestSetNeg
+     * @param sourceRules
+     * @param testFold
+     * @param numBits
+     * @param br
+     * @throws IOException 
+     */
+    public static void writeTestSet(String sourceTestSetPos, String sourceTestSetNeg,
+            String sourceRules, int testFold, int[] numBits, BufferedWriter br)
+            throws IOException
+    {
+        try
+        {
+            //Escribimos los ejemplos positivos
+            Connection con = HiveConnect.getConnection();
+            Statement stmt = con.createStatement();
+            String query = "SELECT * FROM " + sourceTestSetPos + " WHERE fold = " + testFold;
+            ResultSet rs = stmt.executeQuery(query);
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            String data = "", binaryValue;
+            int limit = Driver.limit;
+            
+            while(rs.next())
+            {
+                //El número de fold lo dejamos fuera
+                for (int i = 1; i < columnsNumber; i++)
+                {
+                    binaryValue = DataBase.createBinaryValue(numBits[i-1], rs.getInt(i));
+                        
+                    data += binaryValue + ",";
+                }
+                
+                data += "\t";
+                
+                if(data.length() > limit)
+                {
+                    //Escribimos el número de reglas
+                    br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+                    //Escribimos las reglas
+                    DataBase.writeRulesInFile(sourceRules, br);
+                    br.write("\t");
+                    //Escribimos los ejemplos
+                    br.write(data);
+                    br.write("\n");
+                    data = "";
+                }
+            }
+            
+            //Escribimos los ejemplos negativos
+            query = "SELECT * FROM " + sourceTestSetNeg + " WHERE fold = " + testFold;
+            rs = stmt.executeQuery(query);
+            
+            while(rs.next())
+            {
+                //El número de fold lo dejamos fuera
+                for (int i = 1; i < columnsNumber; i++)
+                {
+                    binaryValue = DataBase.createBinaryValue(numBits[i-1], rs.getInt(i));
+                    
+                    data += binaryValue + ",";
+                }
+                
+                data += "\t";
+                
+                if(data.length() > limit)
+                {
+                    //Escribimos el número de reglas
+                    br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+                    //Escribimos las reglas
+                    DataBase.writeRulesInFile(sourceRules, br);
+                    br.write("\t");
+                    //Escribimos los ejemplos
+                    br.write(data);
+                    br.write("\n");
+                    data = "";
+                }
+            }
+            
+            //Escribimos el número de reglas
+            br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+            //Escribimos las reglas
+            DataBase.writeRulesInFile(sourceRules, br);
+            br.write("\t");
+            //Escribimos los ejemplos
+            br.write(data);
+            br.write("\n");
+            
+            
+            con.close();
+            
+        } catch (SQLException ex)
+        {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     
     public static void insert(String tableName, String data)
     {
@@ -227,18 +330,7 @@ public abstract class DataBase
             ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
-            String line;
-            
-            /*
-            while (rs.next())
-            {
-                line = "mapId: " + rs.getInt(1);
-                
-                for (int i = 0; i < numFields-1; i++) line += "; atr" + i + ": " + rs.getInt(i+2);
-                
-                System.out.println(line);
-            }
-            */
+
             System.out.println("Num Col: " + columnsNumber);
             rs.next();
             for (int i = 1; i <= columnsNumber; i++)
@@ -305,13 +397,42 @@ public abstract class DataBase
     }
     
     
+    public static void createRuleTable(String tableName)
+    {
+        try
+        {
+            Connection con = HiveConnect.getConnection();
+            Statement stmt = con.createStatement();
+            
+            DataBase.dropTable(tableName);
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + tableName
+                + " (rule STRING,"
+                + "fieldNull INT,"
+                + " numRe INT,"
+                + " numPos INT,"
+                + " numNeg INT,"
+                + " piM DOUBLE)"
+                + " ROW FORMAT DELIMITED"
+                + " FIELDS TERMINATED BY '\t'"
+                + " LINES TERMINATED BY '\n'"
+                + " STORED AS TEXTFILE");
+            
+            con.close();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
     public static void load(String tableName, String fileName)
     {
         try
         {
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
-            stmt.execute("LOAD DATA LOCAL INPATH '"+ fileName +"' INTO TABLE " + tableName);
+            stmt.execute("LOAD DATA INPATH '"+ fileName +"' INTO TABLE " + tableName);
             
             con.close();
             
@@ -323,24 +444,37 @@ public abstract class DataBase
     }
     
     
-    public static void countRows(String tableName)
+    private static void writeRulesInFile(String tableName, BufferedWriter br) throws IOException
     {
         try
         {
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM " + tableName);
-            rs.next();
-            System.out.println("number of tuples: " + rs.getString(1));
+            String query = "SELECT rule, piM FROM " + tableName + " ORDER BY piM DESC";
+            ResultSet rs = stmt.executeQuery(query);
+            String data = "";
+            
+            while(rs.next())
+            {
+                data += rs.getString(1) + "\t";
+                
+                if(data.length() > Driver.limit)
+                {
+                    br.write(data);
+                    data = "";
+                }
+            }
+            
+            br.write(data);
             
             con.close();
             
-            System.out.println("Count OK");
-            
-        } catch (SQLException ex) {
+        } catch (SQLException ex)
+        {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
     
     
     public static long getNumRows(String tableName)
@@ -349,14 +483,32 @@ public abstract class DataBase
         {
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SHOW TBLPROPERTIES " + tableName);
-            rs.next();rs.next();rs.next();
+            ResultSet rs = stmt.executeQuery("DESCRIBE EXTENDED " + tableName);
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            int numCol = -1;
             
-            long numRows = Long.parseLong(rs.getString(2));
+            while(numCol == -1)
+            {
+                rs.next();
+                
+                for (int i = 1; i <= columnsNumber; i++)
+                {
+                    if(rs.getString(i) != null)
+                    {
+                        int value = rs.getString(i).indexOf("numRows=");
+                        
+                        if(value != -1)
+                        {
+                            numCol = Integer.parseInt(rs.getString(i).substring(value).substring(8).substring(0, 1));
+                        }
+                    }
+                }
+            }
             
             con.close();
             
-            return numRows;
+            return numCol;
             
         } catch (SQLException ex)
         {
@@ -402,8 +554,17 @@ public abstract class DataBase
         return null;
     }
     
-    
-    public static String getDataBinaryFormat(String tableName, int[] numBits,long init, long end)
+    /**
+     * Escribe en el fichero los datos especificados por parámetro
+     * @param tableName
+     * @param numBits
+     * @param init
+     * @param end
+     * @param br
+     * @throws IOException 
+     */
+    public static void writeDataBinaryFormat(String tableName, int[] numBits, 
+            long init, long end, BufferedWriter br) throws IOException
     {
         try
         {
@@ -414,6 +575,7 @@ public abstract class DataBase
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             String data = "", binaryValue;
+            int limit = Driver.limit;
             
             while(rs.next())
             {
@@ -426,18 +588,21 @@ public abstract class DataBase
                 }
                 
                 data += "\t";
+                
+                if(data.length() > limit)
+                {
+                    br.write(data);
+                    data = "";
+                }
             }
             
+            br.write(data);
             con.close();
-            
-            return data;
             
         } catch (SQLException ex)
         {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        return null;
     }
     
     
