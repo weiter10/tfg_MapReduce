@@ -11,8 +11,8 @@ import Hdfs_Operations.HdfsRemove;
 import Hdfs_Operations.HdfsWriter;
 import Hive_JDBC_Operations.DataBase;
 import Parse.ParseFileFromLocal;
-import MapReduce.Map;
-import MapReduce.Reduce;
+import MapReduce.Map1;
+import MapReduce.Reduce1;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -75,26 +75,26 @@ public class Driver
             args2[1] = "";
             ToolRunner.run(new HdfsRemove(), args2);
             
-            //Generamos el fichero a través del cual se lanzarán los Map
+            //Generamos el fichero a través del cual se lanzarán los Map1
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing Dataset in HDFS");
             Driver.generateTrainingSetFile(i);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
-            /*
-            //Lanzamos la tarea
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting job " + i);
-            ToolRunner.run(new JobAlgorithm(), args);
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job " + i + " OK");
+            
+            //Lanzamos la tarea MR con los algoritmos genéticos
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting Job1_ " + i);
+            ToolRunner.run(new Job1(), args);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job1_ " + i + " OK");
             
             //Escribimos el resultado en el almacenamiento local
             args2[0] = "/output/part-r-00000";
-            args2[1] = args[3] + i;
+            args2[1] = args[3] + "/Job1_" + i;
             ToolRunner.run(new HdfsReaderExt(), args2);
-            */
+            
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
             args2[0] = "/input/dataset";
-            args2[1] = "/home/manu/datasetHDFS" + i;
+            args2[1] =  args[3] + "/datasetHDFS_" + i;
             ToolRunner.run(new HdfsReaderExt(), args2);
-            /*
+            
             //Introducimos las reglas en Hive
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing rules in Hive");
             DataBase.createRuleTable(Driver.nameRuleTable);
@@ -108,11 +108,23 @@ public class Driver
             
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
             args2[0] = "/input/testset";
-            args2[1] = "/home/manu/testsetHDFS" + i;
+            args2[1] = args[3] + "/testsetHDFS_" + i;
             ToolRunner.run(new HdfsReaderExt(), args2);
-            */
-            //Lanzamos el MR que determinará la precisión del clasificador
             
+            //Borramos el directorio de salida de trabajos MapReduce
+            args2[0] = "/output";
+            args2[1] = "";
+            ToolRunner.run(new HdfsRemove(), args2);
+            
+            //Lanzamos el MR que determinará la precisión del clasificador
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting Job2_ " + i);
+            ToolRunner.run(new Job2(), args);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job2_ " + i + " OK");
+            
+            //Escribimos el resultado en el almacenamiento local
+            args2[0] = "/output/part-r-00000";
+            args2[1] = args[3] + "/Job2_" + i;
+            ToolRunner.run(new HdfsReaderExt(), args2);
         }
         
         System.exit(0);

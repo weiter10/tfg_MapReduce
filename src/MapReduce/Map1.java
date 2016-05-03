@@ -39,7 +39,7 @@ import org.apache.hadoop.util.ToolRunner;
  *
  * @author manu
  */
-public class Map extends Mapper<LongWritable, Text, Text, Text>
+public class Map1 extends Mapper<LongWritable, Text, Text, Text>
 {
     private BufferedReader br = null;
     
@@ -69,7 +69,7 @@ public class Map extends Mapper<LongWritable, Text, Text, Text>
         try
         {
             Random rnd = new Random();
-            rnd.setSeed(0);
+            rnd.setSeed(System.nanoTime());
             Algorithm alg = new Algorithm(value.toString(),rnd);
             Set<Rule> finalRules = alg.run();
             
