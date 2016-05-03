@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public class Algorithm
 {
-    private final int sizePopulation = 3;
+    private final int sizePopulation = 30;
     private final Parse dataset;
     private Set<Rule> population;
     private final Random rnd;

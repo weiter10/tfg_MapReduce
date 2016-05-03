@@ -37,7 +37,7 @@ public abstract class ParseFileFromLocal
         String line, cvsSplitBy = ",", insertTmp, insertPositives = "",
                 insertNegatives = "";
         String[] lineSplit;
-        int numCol, numAtr, limit = Integer.MAX_VALUE/2, foldPositive = 1,
+        int numCol, numAtr, limit = Driver.limit, foldPositive = 1,
                 foldNegative = 1;
 
         //Leemos una linea del fichero para poder crear las dos tablas

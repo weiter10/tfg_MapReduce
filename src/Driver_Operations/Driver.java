@@ -76,10 +76,10 @@ public class Driver
             ToolRunner.run(new HdfsRemove(), args2);
             
             //Generamos el fichero a través del cual se lanzarán los Map
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing Dataset in HDFS OK");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing Dataset in HDFS");
             Driver.generateTrainingSetFile(i);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
-            
+            /*
             //Lanzamos la tarea
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting job " + i);
             ToolRunner.run(new JobAlgorithm(), args);
@@ -89,20 +89,20 @@ public class Driver
             args2[0] = "/output/part-r-00000";
             args2[1] = args[3] + i;
             ToolRunner.run(new HdfsReaderExt(), args2);
-            
+            */
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
             args2[0] = "/input/dataset";
             args2[1] = "/home/manu/datasetHDFS" + i;
             ToolRunner.run(new HdfsReaderExt(), args2);
-            
+            /*
             //Introducimos las reglas en Hive
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing rules in Hive OK");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing rules in Hive");
             DataBase.createRuleTable(Driver.nameRuleTable);
             DataBase.load(Driver.nameRuleTable,"/output/part-r-00000");
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Rules write in Hive OK");
             
             //Creamos el fichero de entrada con las reglas y el testset
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing testSet in HDFS OK");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing testSet in HDFS");
             Driver.generateTestSetFile(i);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> TestSet write in HDFS OK");
             
@@ -110,8 +110,9 @@ public class Driver
             args2[0] = "/input/testset";
             args2[1] = "/home/manu/testsetHDFS" + i;
             ToolRunner.run(new HdfsReaderExt(), args2);
-            
+            */
             //Lanzamos el MR que determinará la precisión del clasificador
+            
         }
         
         System.exit(0);

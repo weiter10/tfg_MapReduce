@@ -190,8 +190,9 @@ public abstract class DataBase
     }
     
     /**
-     * Escribe en el fichero: el nº de reglas, las reglas y el testSet. Por cada GB
+     * Escribe en el fichero: las reglas y el testSet. Por cada GB
      * de datos se genera un nuevo MAP (una nueva linea en el fichero)
+     * El fin de las reglas se delimita por dos tabulaciones "\t\t"
      * @param sourceTestSetPos
      * @param sourceTestSetNeg
      * @param sourceRules
@@ -231,7 +232,7 @@ public abstract class DataBase
                 if(data.length() > limit)
                 {
                     //Escribimos el número de reglas
-                    br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+                    //br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
                     //Escribimos las reglas
                     DataBase.writeRulesInFile(sourceRules, br);
                     br.write("\t");
@@ -261,7 +262,7 @@ public abstract class DataBase
                 if(data.length() > limit)
                 {
                     //Escribimos el número de reglas
-                    br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+                    //br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
                     //Escribimos las reglas
                     DataBase.writeRulesInFile(sourceRules, br);
                     br.write("\t");
@@ -273,14 +274,13 @@ public abstract class DataBase
             }
             
             //Escribimos el número de reglas
-            br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+            //br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
             //Escribimos las reglas
             DataBase.writeRulesInFile(sourceRules, br);
             br.write("\t");
             //Escribimos los ejemplos
             br.write(data);
             br.write("\n");
-            
             
             con.close();
             
@@ -483,33 +483,14 @@ public abstract class DataBase
         {
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("DESCRIBE EXTENDED " + tableName);
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columnsNumber = rsmd.getColumnCount();
-            int numCol = -1;
-            
-            while(numCol == -1)
-            {
-                rs.next();
-                
-                for (int i = 1; i <= columnsNumber; i++)
-                {
-                    if(rs.getString(i) != null)
-                    {
-                        int value = rs.getString(i).indexOf("numRows=");
-                        
-                        if(value != -1)
-                        {
-                            numCol = Integer.parseInt(rs.getString(i).substring(value).substring(8).substring(0, 1));
-                        }
-                    }
-                }
-            }
+            String query = "SELECT COUNT(*) FROM " + tableName;
+            ResultSet rs = stmt.executeQuery(query);
+            rs.next();
+            long numRows = Long.parseLong(rs.getString(1));
             
             con.close();
             
-            
-            return numCol;
+            return numRows;
             
         } catch (SQLException ex)
         {
