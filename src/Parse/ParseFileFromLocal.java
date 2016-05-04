@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import Driver_Operations.Driver;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -214,10 +215,11 @@ public abstract class ParseFileFromLocal
     public static String getBinaryMinorClass()
     {
         int[] tabNumBits = ParseFileFromLocal.getNumBits();
-        int numBits = tabNumBits[tabNumBits.length-1];//El atributo de clase es el último
+        int size = tabNumBits.length-1;
+        int numBits = tabNumBits[size];//El atributo de clase es el último
         
         return ParseFileFromLocal.createBinaryValue(numBits, 
-                ParseFileFromLocal.inside[tabNumBits.length-1]
+                ParseFileFromLocal.inside[size]
                         .get(ParseFileFromLocal.minorClass));
     }
     
@@ -227,7 +229,7 @@ public abstract class ParseFileFromLocal
         int[] tabNumBits = ParseFileFromLocal.getNumBits();
         int size = tabNumBits.length-1;
         int numBits = tabNumBits[size];//El atributo de clase es el último
-        Set<String> s = ParseFileFromLocal.inside[size].keySet();
+        Set<String> s = new HashSet(ParseFileFromLocal.inside[size].keySet());
         s.remove(ParseFileFromLocal.minorClass);
         String majorityClass = s.iterator().next();
         
