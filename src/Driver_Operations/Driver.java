@@ -68,7 +68,7 @@ public class Driver
         //--
         
         //Generamos 5 cross validation
-        for (int i = 1; i <= 1; i++)
+        for (int i = 1; i <= 5; i++)
         {
             //Borramos el directorio de salida de trabajos MapReduce
             args2[0] = "/output";
@@ -81,9 +81,9 @@ public class Driver
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
             
             //Lanzamos la tarea MR con los algoritmos genéticos
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting Job1_ " + i);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting Job1_" + i);
             ToolRunner.run(new Job1(), args);
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job1_ " + i + " OK");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job1_" + i + " OK");
             
             //Escribimos el resultado en el almacenamiento local
             args2[0] = "/output/part-r-00000";
@@ -117,9 +117,9 @@ public class Driver
             ToolRunner.run(new HdfsRemove(), args2);
             
             //Lanzamos el MR que determinará la precisión del clasificador
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting Job2_ " + i);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting Job2_" + i);
             ToolRunner.run(new Job2(), args);
-            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job2_ " + i + " OK");
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Job2_" + i + " OK");
             
             //Escribimos el resultado en el almacenamiento local
             args2[0] = "/output/part-r-00000";
