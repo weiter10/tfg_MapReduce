@@ -225,7 +225,7 @@ public abstract class ParseFileFromLocal
     public static String getBinaryMajorityClass()
     {
         int[] tabNumBits = ParseFileFromLocal.getNumBits();
-        int size = tabNumBits.length;
+        int size = tabNumBits.length-1;
         int numBits = tabNumBits[size];//El atributo de clase es el último
         Set<String> s = ParseFileFromLocal.inside[size].keySet();
         s.remove(ParseFileFromLocal.minorClass);
