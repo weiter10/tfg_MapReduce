@@ -16,8 +16,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -48,47 +50,56 @@ public class Map2 extends Mapper<LongWritable, Text, Text, Text>
     {
         try
         {
-            long numPos = 0, numNeg = 0;
             int result, index;
-            String defaultClass = "10";
+            Map<String, Integer> indexConfusionMatrix = new HashMap();
+            long[][] confusionMatrix = new long[2][2];
             String[] data = value.toString().split("\t\t");
+            String minorClass = data[0], majorityClass = data[1], 
+                    defaultClass = data[1], exClass;
             //Cargamos las reglas
-            ArrayList<Rule> rules = Parse.parseRules(data[0]);
+            ArrayList<Rule> rules = Parse.parseRules(data[2]);
             Example ex;
             
-            for(String exampleStr : data[1].split("\t"))
+            //Agregamos la clase minoritaria y mayoritaria al diccionario de 
+            //índices
+            indexConfusionMatrix.put(data[0], 0);
+            indexConfusionMatrix.put(data[1], 1);
+            
+            /*
+            Fila: dada por el clasificador (predicha)
+            Columna: dada por el ejemplo(real)
+            */
+            
+            for(String exampleStr : data[3].split("\t"))
             {
                 result = 0;
                 index = 0;
                 ex = Parse.parseExample(exampleStr);
+                exClass = ex.getClassAttribute().toString();
                 
                 while(index < rules.size() && result == 0)
                 {
                     result = rules.get(index).coverExample(ex);
-                    index++;
-                }
-                
-                //Lo cubre correctamente
-                if(result == 1)
-                    numPos++;
-                
-                //Lo cubre incorrectamente
-                else if(result == -1)
-                    numNeg++;
-                
-                //Clase por defecto
-                else
-                {
-                    if(defaultClass.equals(ex.getClassAttribute().toString()))
-                        numPos++;
                     
-                    else
-                        numNeg++;
+                    if(result == 0)
+                        index++;
                 }
+                
+                //Lo cubre de manera correcta o incorrecta
+                if(result == 1 || result == -1)
+                    confusionMatrix[indexConfusionMatrix.get(rules.get(index).getStrClass())]
+                            [indexConfusionMatrix.get(ex.getClassAttribute().toString())]++;
+                
+                //Clase por defecto (mayoritaria)
+                else
+                    confusionMatrix[indexConfusionMatrix.get(defaultClass)]
+                        [indexConfusionMatrix.get(ex.getClassAttribute().toString())]++;
             }
             
-            context.write(new Text("positives"), new Text(Long.toString(numPos)));
-            context.write(new Text("negatives"), new Text(Long.toString(numNeg)));
+            context.write(new Text("true_positives"), new Text(Long.toString(confusionMatrix[0][0])));
+            context.write(new Text("true_negatives"), new Text(Long.toString(confusionMatrix[1][1])));
+            context.write(new Text("false_positives"), new Text(Long.toString(confusionMatrix[0][1])));
+            context.write(new Text("false_negative"), new Text(Long.toString(confusionMatrix[1][0])));
             
             //Key: caso (positivos o negativos)
             

@@ -6,6 +6,7 @@
 package Hive_JDBC_Operations;
 
 import Driver_Operations.Driver;
+import Parse.ParseFileFromLocal;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -103,7 +104,7 @@ public abstract class DataBase
             
             con.close();
             
-            System.out.println("Create OK");
+            System.out.println("Create table " + tableName + " OK");
 
         } catch (SQLException ex)
         {
@@ -222,7 +223,7 @@ public abstract class DataBase
                 //El número de fold lo dejamos fuera
                 for (int i = 1; i < columnsNumber; i++)
                 {
-                    binaryValue = DataBase.createBinaryValue(numBits[i-1], rs.getInt(i));
+                    binaryValue = ParseFileFromLocal.createBinaryValue(numBits[i-1], rs.getInt(i));
                         
                     data += binaryValue + ",";
                 }
@@ -231,8 +232,10 @@ public abstract class DataBase
                 
                 if(data.length() > limit)
                 {
-                    //Escribimos el número de reglas
-                    //br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+                    //Escribimos la clase minoritaria
+                    br.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+                    //Escribimos la clase mayoritaria
+                    br.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
                     //Escribimos las reglas
                     DataBase.writeRulesInFile(sourceRules, br);
                     br.write("\t");
@@ -252,7 +255,7 @@ public abstract class DataBase
                 //El número de fold lo dejamos fuera
                 for (int i = 1; i < columnsNumber; i++)
                 {
-                    binaryValue = DataBase.createBinaryValue(numBits[i-1], rs.getInt(i));
+                    binaryValue = ParseFileFromLocal.createBinaryValue(numBits[i-1], rs.getInt(i));
                     
                     data += binaryValue + ",";
                 }
@@ -261,8 +264,10 @@ public abstract class DataBase
                 
                 if(data.length() > limit)
                 {
-                    //Escribimos el número de reglas
-                    //br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+                    //Escribimos la clase minoritaria
+                    br.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+                    //Escribimos la clase mayoritaria
+                    br.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
                     //Escribimos las reglas
                     DataBase.writeRulesInFile(sourceRules, br);
                     br.write("\t");
@@ -273,8 +278,10 @@ public abstract class DataBase
                 }
             }
             
-            //Escribimos el número de reglas
-            //br.write(Long.toString(DataBase.getNumRows(sourceRules)) + "\t");
+            //Escribimos la clase minoritaria
+            br.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+            //Escribimos la clase mayoritaria
+            br.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
             //Escribimos las reglas
             DataBase.writeRulesInFile(sourceRules, br);
             br.write("\t");
@@ -313,7 +320,7 @@ public abstract class DataBase
             
             con.close();
             
-            System.out.println("Insert OK");
+            System.out.println("Insert in table " + tableName + " OK");
             
         } catch (SQLException ex) {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
@@ -389,7 +396,7 @@ public abstract class DataBase
             
             con.close();
             
-            System.out.println("Drop OK");
+            System.out.println("Drop table " + tableName + " OK");
             
         } catch (SQLException ex) {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
@@ -436,7 +443,7 @@ public abstract class DataBase
             
             con.close();
             
-            System.out.println("Load OK");
+            System.out.println("Load in " + tableName + " OK");
             
         } catch (SQLException ex) {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
@@ -564,7 +571,7 @@ public abstract class DataBase
                 //El id lo dejamos fuera
                 for (int i = 1; i < columnsNumber; i++)
                 {
-                    binaryValue = DataBase.createBinaryValue(numBits[i-1], rs.getInt(i));
+                    binaryValue = ParseFileFromLocal.createBinaryValue(numBits[i-1], rs.getInt(i));
                         
                     data += binaryValue + ",";
                 }
@@ -585,20 +592,5 @@ public abstract class DataBase
         {
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-    
-    
-    private static String createBinaryValue(int numBits, int posiTrue)
-    {
-        String value = "";
-        
-        for (int i = 1; i <= numBits; i++)
-        {
-            if(posiTrue == i) value = "1" + value;
-            
-            else value = "0" + value;
-        }
-        
-        return value;
     }
 }

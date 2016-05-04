@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import Driver_Operations.Driver;
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  *
@@ -26,9 +27,10 @@ public abstract class ParseFileFromLocal
 {
     private static Map<String,Integer>[] inside;//From String to Int, un Map por columna del Dataset
     private static Map<Integer,String>[] outside;//From Int to String, un Map por columna del Dataset
+    private static String minorClass;
     
     
-    public static void parse(String fileName, String posiClass, int classColNum)
+    public static void parse(String fileName, String minorClass, int classColNum)
             throws FileNotFoundException, IOException
     {
         File archivo = new File(fileName);
@@ -39,6 +41,7 @@ public abstract class ParseFileFromLocal
         String[] lineSplit;
         int numCol, numAtr, limit = Driver.limit, foldPositive = 1,
                 foldNegative = 1;
+        ParseFileFromLocal.minorClass = minorClass;
 
         //Leemos una linea del fichero para poder crear las dos tablas
         line = br.readLine();
@@ -80,7 +83,7 @@ public abstract class ParseFileFromLocal
             insertTmp += inside[i].get(lineSplit[i]) + ",";
         }
         
-        if(posiClass.equals(lineSplit[numAtr-1]))
+        if(minorClass.equals(lineSplit[numAtr-1]))
         {
             insertTmp += foldPositive + ")";
             foldPositive++;
@@ -113,7 +116,7 @@ public abstract class ParseFileFromLocal
                 insertTmp += inside[i].get(lineSplit[i]) + ",";
             }
 
-            if(posiClass.equals(lineSplit[numAtr-1]))
+            if(minorClass.equals(lineSplit[numAtr-1]))
             {
                 insertTmp += foldPositive + ")";
                 foldPositive++;
@@ -205,5 +208,45 @@ public abstract class ParseFileFromLocal
         for (int i = 0; i < numBits.length; i++) numBits[i] = ParseFileFromLocal.inside[i].size();
         
         return numBits;
+    }
+    
+    
+    public static String getBinaryMinorClass()
+    {
+        int[] tabNumBits = ParseFileFromLocal.getNumBits();
+        int numBits = tabNumBits[tabNumBits.length-1];//El atributo de clase es el último
+        
+        return ParseFileFromLocal.createBinaryValue(numBits, 
+                ParseFileFromLocal.inside[tabNumBits.length-1]
+                        .get(ParseFileFromLocal.minorClass));
+    }
+    
+    
+    public static String getBinaryMajorityClass()
+    {
+        int[] tabNumBits = ParseFileFromLocal.getNumBits();
+        int size = tabNumBits.length;
+        int numBits = tabNumBits[size];//El atributo de clase es el último
+        Set<String> s = ParseFileFromLocal.inside[size].keySet();
+        s.remove(ParseFileFromLocal.minorClass);
+        String majorityClass = s.iterator().next();
+        
+        return ParseFileFromLocal.createBinaryValue(numBits, 
+                ParseFileFromLocal.inside[size].get(majorityClass));
+    }
+    
+    
+    public static String createBinaryValue(int numBits, int posiTrue)
+    {
+        String value = "";
+        
+        for (int i = 1; i <= numBits; i++)
+        {
+            if(posiTrue == i) value = "1" + value;
+            
+            else value = "0" + value;
+        }
+        
+        return value;
     }
 }
