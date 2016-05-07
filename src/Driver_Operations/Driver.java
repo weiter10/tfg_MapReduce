@@ -68,7 +68,7 @@ public class Driver
         //--
         
         //Generamos 5 cross validation
-        for (int i = 1; i <= 5; i++)
+        for (int i = 1; i <= 1; i++)
         {
             //Borramos el directorio de salida de trabajos MapReduce
             args2[0] = "/output";
