@@ -177,7 +177,7 @@ public class Driver
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Training folds " + Arrays.toString(trainingFolds));
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Test fold: " + testFold);
         
-        //Construimos las tablas
+        //Construimos las tablas de Training
         DataBase.createTrainingTable(Driver.nameBigTablePos, Driver.nameTableTrainingPos, trainingFolds);
         DataBase.createTrainingTable(Driver.nameBigTableNeg, Driver.nameTableTrainingNeg, trainingFolds);
         
@@ -189,7 +189,8 @@ public class Driver
         ToolRunner.run(new HdfsWriter(), new String[] {"/input/dataset"});
         BufferedWriter br = HdfsWriter.br;
         
-        //El IR del dataset que recibe el genético va a ser 1
+        //El IR del dataset que recibe el genético va a ser 1, ya que las clases
+        //están totalmente balanceadas
         int irAGL = 1;
         iR = Driver.calculateIR();
         Driver.numMaps = (long)iR;
