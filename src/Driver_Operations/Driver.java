@@ -224,12 +224,8 @@ public class Driver
             br.write("\n");
         }
         
-        //Driver.sizeTrainingSet = HdfsWriter.fs.getLength(path)
-        
         br.close();//Cerramos el buffer de escritura HDFS
         Driver.sizeTrainingSet = HdfsWriter.fs.getFileStatus(new Path("/input/dataset")).getLen();
-        //System.out.println("Tamanio del trainingSet");
-        //System.out.println(HdfsWriter.fs.getFileStatus(new Path("/input/dataset")).getLen());
         
         
         /*
