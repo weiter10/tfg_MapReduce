@@ -28,6 +28,11 @@ public class Job1 extends Configured implements Tool
     public int run(String[] strings) throws Exception
     {
         Configuration conf = getConf();
+        //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
+                //Long.toString(Driver.sizeTrainingSet/Driver.numMaps));
+                
+        conf.set("mapreduce.input.fileinputformat.split.maxsize", 
+                Long.toString(Driver.sizeTrainingSet/2));
         
         Job job = new Job(conf, "DGA");
         

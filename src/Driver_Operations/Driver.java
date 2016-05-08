@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.*;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
@@ -46,6 +47,7 @@ public class Driver
             nameTableTrainingNeg = "negativeexamplestraining",
             nameTestTableTest = "testset",
             nameRuleTable = "tabrules";
+    public static long sizeTrainingSet, numMaps;
     
     public static int numAttributes, limit = Integer.MAX_VALUE/4;
     
@@ -190,6 +192,7 @@ public class Driver
         //El IR del dataset que recibe el genético va a ser 1
         int irAGL = 1;
         iR = Driver.calculateIR();
+        Driver.numMaps = (long)iR;
         
         for (int i = 0; i < (int)iR; i++)
         {
@@ -221,7 +224,14 @@ public class Driver
             br.write("\n");
         }
         
+        //Driver.sizeTrainingSet = HdfsWriter.fs.getLength(path)
+        
         br.close();//Cerramos el buffer de escritura HDFS
+        Driver.sizeTrainingSet = HdfsWriter.fs.getFileStatus(new Path("/input/dataset")).getLen();
+        //System.out.println("Tamanio del trainingSet");
+        //System.out.println(HdfsWriter.fs.getFileStatus(new Path("/input/dataset")).getLen());
+        
+        
         /*
         System.out.println("-------------------------------------------------------------");
         Driver.showDataBinaryFormat(positiveExamples);

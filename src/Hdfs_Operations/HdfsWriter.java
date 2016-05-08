@@ -26,6 +26,7 @@ public class HdfsWriter extends Configured implements Tool
 {
     public static final String FS_PARAM_NAME = "fs.defaultFS";
     public static BufferedWriter br;
+    public static FileSystem fs;
 
     @Override
     public int run(String[] args) throws Exception
@@ -34,7 +35,7 @@ public class HdfsWriter extends Configured implements Tool
 
         Configuration conf = getConf();
         System.out.println("configured filesystem = " + conf.get(FS_PARAM_NAME));
-        FileSystem fs = FileSystem.get(conf);
+        HdfsWriter.fs = FileSystem.get(conf);
         
         /*
         if (fs.exists(outputPath))
@@ -48,5 +49,4 @@ public class HdfsWriter extends Configured implements Tool
                                    // TO append data to a file, use fs.append(Path f)
         return 0;
     }
-    
 }
