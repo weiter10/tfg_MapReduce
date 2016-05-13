@@ -23,7 +23,7 @@ import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-public class HdfsReaderExt extends Configured implements Tool
+public class HdfsReaderToLocal extends Configured implements Tool
 {
     public static final String FS_PARAM_NAME = "fs.defaultFS";
     
@@ -57,6 +57,8 @@ public class HdfsReaderExt extends Configured implements Tool
                 System.out.println(line);
         }
         */
+        is.close();
+        os.close();
         fs.close();
         return 0;
     }

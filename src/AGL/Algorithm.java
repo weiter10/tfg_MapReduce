@@ -28,10 +28,11 @@ public class Algorithm
     private final Set<Rule> finalRules;
     
     
-    public Algorithm(String dataString, Random rnd) throws FileNotFoundException, IOException
+    public Algorithm(String dataString) throws FileNotFoundException, IOException
     {
         dataset = new Parse(dataString);
-        this.rnd = rnd;
+        this.rnd = new Random();
+        this.rnd.setSeed(dataset.getSeedRandomNumbers());
         this.finalRules = new HashSet();
     }
     
@@ -44,7 +45,8 @@ public class Algorithm
         int numVoters = (int) (sizePopulation*0.9);
         ArrayList<Rule> parents;
         Set<Integer> validExamples = this.dataset.getValidExamples();
-        int numIterationsWithOutImprove = 0, limit = 60, countFail = 0, countGood = 0, vF = 0, vG = 0;
+        int numIterationsWithOutImprove = 0, limit = 150, countFail = 0, 
+                countGood = 0, vF = 0, vG = 0;
         double lastMeanEvaluation = this.getMeanEvaluationFunction(),
                 actualMeanEvaluation, pCrossing = 0.6;
         Rule[] rules, coupleParents = new Rule[2];
@@ -99,7 +101,8 @@ public class Algorithm
                         sR = new HashSet(orderedByEF);
                         if(sR.size() != 4)
                         {
-                            System.out.println("Resultado de la reproduccion: " + sR.size() + " en lugar de 4 con " + validExamples.size() + " ejemplos validos");
+                            System.out.println("Resultado de la reproduccion: " + sR.size() + 
+                                    " en lugar de 4 con " + validExamples.size() + " ejemplos validos");
                             countFail++;
                         }
                         else countGood++;
@@ -133,7 +136,8 @@ public class Algorithm
                 
                 //TODO poner una política en condiciones para reducir la población
                 //si aumenta del máximo
-                while(this.population.size() > this.sizePopulation) this.population.remove(this.population.iterator().next());
+                while(this.population.size() > this.sizePopulation)
+                    this.population.remove(this.population.iterator().next());
             }
             //Reducción de ejemplos, implica reevaluar todas las reglas de la
             //población
@@ -156,7 +160,10 @@ public class Algorithm
                 this.dataset.removeCoverExamples(best);
                 //Añadimos una regla aleatoria para sustituir la eliminada
                 int size = this.population.size();
-                while(size == this.population.size()) this.population.add(Rule.generateRandomRule(rnd, best.getPattern(), dataset));
+                
+                while(size == this.population.size())
+                    this.population.add(Rule.generateRandomRule(rnd, best.getPattern(), dataset));
+                
                 //Actualizamos el performance de todas las reglas
                 for(Rule rule : this.population) rule.updatePerformance();
                 
@@ -374,7 +381,8 @@ public class Algorithm
             posi = rnd.nextInt(validExamples.size());
             int size = initialPopulation.size();
             
-            while(initialPopulation.size() == size) initialPopulation.add(this.sownOperator(data.get(validExamples.get(posi))));
+            while(initialPopulation.size() == size)
+                initialPopulation.add(this.sownOperator(data.get(validExamples.get(posi))));
             
             validExamples.remove(posi);
         }

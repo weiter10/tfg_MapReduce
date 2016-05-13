@@ -3,10 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Driver_Operations;
+package Job_Test;
 
-import MapReduce.Map1;
-import MapReduce.Reduce1;
+import Driver_Operations.Driver;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -22,32 +21,27 @@ import org.apache.hadoop.util.Tool;
  *
  * @author manu
  */
-public class Job1 extends Configured implements Tool
+public class Test extends Configured implements Tool
 {
     @Override
     public int run(String[] strings) throws Exception
     {
         Configuration conf = getConf();
-        //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                //Long.toString(Driver.sizeTrainingSet/Driver.numMaps));
-                
-        conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                Long.toString(Driver.sizeTrainingSet/2));
         
-        Job job = new Job(conf, "DGA");
+        Job job = new Job(conf, "TestFase");
         
         job.setJarByClass(Driver.class);
         
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        job.setMapperClass(Map1.class);
-        job.setReducerClass(Reduce1.class);
+        job.setMapperClass(MapTest.class);
+        job.setReducerClass(ReduceTest.class);
 
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         
-        FileInputFormat.addInputPath(job, new Path("/input/dataset"));
+        FileInputFormat.addInputPath(job, new Path("/input/testset"));
         FileOutputFormat.setOutputPath(job, new Path("/output"));
         
         job.waitForCompletion(true);

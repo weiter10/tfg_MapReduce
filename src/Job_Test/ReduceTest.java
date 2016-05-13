@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package MapReduce;
+package Job_Test;
 
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class Reduce2 extends Reducer<Text, Text, Text, Text>
+public class ReduceTest extends Reducer<Text, Text, Text, Text>
 {
     @Override
     public void reduce(Text key, Iterable<Text> values, Context context)

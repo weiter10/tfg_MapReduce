@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package MapReduce;
+package Job_Training;
 
 
+import Job_Training.InfoRule;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +18,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-public class Reduce1 extends Reducer<Text, Text, Text, Text>
+public class ReduceTraining extends Reducer<Text, Text, Text, Text>
 {
     @Override
     public void reduce(Text key, Iterable<Text> values, Context context)
@@ -31,29 +32,29 @@ public class Reduce1 extends Reducer<Text, Text, Text, Text>
             try
             {
                 //Clave: clase, valor: información acumulada para esa clase
-                Map<String,infoRule> infoMap = new HashMap();
-                infoRule max = null;
+                Map<String,InfoRule> infoMap = new HashMap();
+                InfoRule max = null;
 
                 for(Text value : values)
                 {
                     String[] param = value.toString().split("\t");
 
-                    if(!infoMap.containsKey(param[0])) infoMap.put(param[0], new infoRule(param[0], key.toString()));
+                    if(!infoMap.containsKey(param[0])) infoMap.put(param[0], new InfoRule(param[0], key.toString()));
 
-                    infoRule ir = infoMap.get(param[0]);
+                    InfoRule ir = infoMap.get(param[0]);
                     ir.addPositives(Integer.parseInt(param[1]));
                     ir.addNegatives(Integer.parseInt(param[2]));
                     ir.increaseCount();
                 }
 
-                ArrayList<infoRule> info = new ArrayList(infoMap.values());
+                ArrayList<InfoRule> info = new ArrayList(infoMap.values());
 
-                for(infoRule in : info) in.calculatePi();
+                for(InfoRule in : info) in.calculatePi();
 
                 if(info.size() > 1)
                 {
-                    infoRule r1 = info.get(0);
-                    infoRule r2 = info.get(1);
+                    InfoRule r1 = info.get(0);
+                    InfoRule r2 = info.get(1);
 
 
                     if(r1.getPi() > r2.getPi()) max = r1;

@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package AGL;
+package GlobalEvaluation;
 
+import AGL.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -65,7 +66,7 @@ public class testAlgorithm
         //--
         */
         
-        
+        /*
         //File archivo = new File("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/datasetHDFS");
         File archivo = new File("/home/manu/datasetHDFS");
         FileReader fr = new FileReader (archivo);
@@ -83,5 +84,6 @@ public class testAlgorithm
         
         
         int nada = 0;
+        */
     }
 }

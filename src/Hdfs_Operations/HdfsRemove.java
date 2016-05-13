@@ -33,6 +33,7 @@ public class HdfsRemove extends Configured implements Tool
         FileSystem fs = FileSystem.get(getConf());
         fs.delete(new Path(args[0]), true); // delete file, true for recursive 
         fs.close();
+        
         return 0;
     }
     

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package MapReduce;
+package Job_Training;
 
 
 
@@ -11,14 +11,14 @@ package MapReduce;
  *
  * @author manu
  */
-public class infoRule
+public class InfoRule
 {
     private final String classRule;
     private int positives, negatives, count, numZeros, sizeChromosome;
     private double pi;
     
     
-    public infoRule(String cl, String rule)
+    public InfoRule(String cl, String rule)
     {
         this.classRule = cl;
         this.positives = 0;

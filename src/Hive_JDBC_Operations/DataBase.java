@@ -199,11 +199,11 @@ public abstract class DataBase
      * @param sourceRules
      * @param testFold
      * @param numBits
-     * @param br
+     * @param bw
      * @throws IOException 
      */
     public static void writeTestSet(String sourceTestSetPos, String sourceTestSetNeg,
-            String sourceRules, int testFold, int[] numBits, BufferedWriter br)
+            String sourceRules, int testFold, int[] numBits, BufferedWriter bw)
             throws IOException
     {
         try
@@ -233,15 +233,15 @@ public abstract class DataBase
                 if(data.length() > limit)
                 {
                     //Escribimos la clase minoritaria
-                    br.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+                    bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
                     //Escribimos la clase mayoritaria
-                    br.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
+                    bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
                     //Escribimos las reglas
-                    DataBase.writeRulesInFile(sourceRules, br);
-                    br.write("\t");
+                    DataBase.writeOrderedRulesInFile(sourceRules, bw);
+                    bw.write("\t");
                     //Escribimos los ejemplos
-                    br.write(data);
-                    br.write("\n");
+                    bw.write(data);
+                    bw.write("\n");
                     data = "";
                 }
             }
@@ -265,29 +265,29 @@ public abstract class DataBase
                 if(data.length() > limit)
                 {
                     //Escribimos la clase minoritaria
-                    br.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+                    bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
                     //Escribimos la clase mayoritaria
-                    br.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
+                    bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
                     //Escribimos las reglas
-                    DataBase.writeRulesInFile(sourceRules, br);
-                    br.write("\t");
+                    DataBase.writeOrderedRulesInFile(sourceRules, bw);
+                    bw.write("\t");
                     //Escribimos los ejemplos
-                    br.write(data);
-                    br.write("\n");
+                    bw.write(data);
+                    bw.write("\n");
                     data = "";
                 }
             }
             
             //Escribimos la clase minoritaria
-            br.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+            bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
             //Escribimos la clase mayoritaria
-            br.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
+            bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
             //Escribimos las reglas
-            DataBase.writeRulesInFile(sourceRules, br);
-            br.write("\t");
+            DataBase.writeOrderedRulesInFile(sourceRules, bw);
+            bw.write("\t");
             //Escribimos los ejemplos
-            br.write(data);
-            br.write("\n");
+            bw.write(data);
+            bw.write("\n");
             
             con.close();
             
@@ -413,7 +413,7 @@ public abstract class DataBase
             
             DataBase.dropTable(tableName);
             
-            stmt.execute("CREATE TABLE IF NOT EXISTS " + tableName
+            stmt.execute("CREATE TABLE " + tableName
                 + " (rule STRING,"
                 + "fieldNull INT,"
                 + " numRe INT,"
@@ -450,8 +450,13 @@ public abstract class DataBase
         }
     }
     
-    
-    private static void writeRulesInFile(String tableName, BufferedWriter br) throws IOException
+    /**
+     * Escribe en el fichero las reglas almacenadas en la tabla.
+     * @param tableName
+     * @param bw
+     * @throws IOException 
+     */
+    public static void writeOrderedRulesInFile(String tableName, BufferedWriter bw) throws IOException
     {
         try
         {
@@ -467,12 +472,50 @@ public abstract class DataBase
                 
                 if(data.length() > Driver.limit)
                 {
-                    br.write(data);
+                    bw.write(data);
                     data = "";
                 }
             }
             
-            br.write(data);
+            bw.write(data);
+            
+            con.close();
+            
+        } catch (SQLException ex)
+        {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
+    /**
+     * Escribe en el fichero las reglas almacenadas en la tabla.
+     * @param tableName
+     * @param bw
+     * @throws IOException 
+     */
+    public static void writeBulkRulesInFile(String tableName, BufferedWriter bw) throws IOException
+    {
+        try
+        {
+            Connection con = HiveConnect.getConnection();
+            Statement stmt = con.createStatement();
+            String query = "SELECT rule FROM " + tableName;
+            ResultSet rs = stmt.executeQuery(query);
+            String data = "";
+            
+            while(rs.next())
+            {
+                data += rs.getString(1) + "\t";
+                
+                if(data.length() > Driver.limit)
+                {
+                    bw.write(data);
+                    data = "";
+                }
+            }
+            
+            bw.write(data);
             
             con.close();
             
@@ -549,11 +592,11 @@ public abstract class DataBase
      * @param numBits
      * @param init
      * @param end
-     * @param br
+     * @param bw
      * @throws IOException 
      */
     public static void writeDataBinaryFormat(String tableName, int[] numBits, 
-            long init, long end, BufferedWriter br) throws IOException
+            long init, long end, BufferedWriter bw) throws IOException
     {
         try
         {
@@ -580,12 +623,12 @@ public abstract class DataBase
                 
                 if(data.length() > limit)
                 {
-                    br.write(data);
+                    bw.write(data);
                     data = "";
                 }
             }
             
-            br.write(data);
+            bw.write(data);
             con.close();
             
         } catch (SQLException ex)

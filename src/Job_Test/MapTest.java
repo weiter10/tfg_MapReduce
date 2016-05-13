@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package MapReduce;
+package Job_Test;
 
 import TestFase.Example;
 import TestFase.Parse;
@@ -41,7 +41,7 @@ import org.apache.hadoop.util.ToolRunner;
  *
  * @author manu
  */
-public class Map2 extends Mapper<LongWritable, Text, Text, Text>
+public class MapTest extends Mapper<LongWritable, Text, Text, Text>
 {
 
     @Override

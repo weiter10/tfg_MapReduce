@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package MapReduce;
+package Job_Training;
 
 import AGL.Algorithm;
 import AGL.Parse;
@@ -39,7 +39,7 @@ import org.apache.hadoop.util.ToolRunner;
  *
  * @author manu
  */
-public class Map1 extends Mapper<LongWritable, Text, Text, Text>
+public class MapTraining extends Mapper<LongWritable, Text, Text, Text>
 {
     private BufferedReader br = null;
     
@@ -70,7 +70,7 @@ public class Map1 extends Mapper<LongWritable, Text, Text, Text>
         {
             Random rnd = new Random();
             rnd.setSeed(System.nanoTime());
-            Algorithm alg = new Algorithm(value.toString(),rnd);
+            Algorithm alg = new Algorithm(value.toString());
             Set<Rule> finalRules = alg.run();
             
             for(Rule r : finalRules)

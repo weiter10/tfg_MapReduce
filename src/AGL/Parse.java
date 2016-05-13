@@ -32,7 +32,8 @@ public final class Parse
     //clase disminuye conforme se van cubriendo ejemplos.
     private final Attribute minorClass;
     
-    private float iR;
+    private final float iR;
+    private final int seedRandomNumbers;
 
     public Set<Integer> getValidExamples()
     {
@@ -48,21 +49,27 @@ public final class Parse
     {
         return mapAtr;
     }
+
+    public int getSeedRandomNumbers() {
+        return seedRandomNumbers;
+    }
     
     public Parse(String dataString) throws FileNotFoundException, IOException
     {
         Attribute[] attributes;
         Attribute at;
-        String[] examples;
+        String[] dataBulk, examples;
         this.data = new ArrayList();
         this.validExamples = new HashSet();
 
-        examples = dataString.split("\t");
-        iR = Float.parseFloat(examples[0]);
+        dataBulk = dataString.split("\t\t");
+        seedRandomNumbers = Integer.parseInt(dataBulk[0]);
+        iR = Float.parseFloat(dataBulk[1]);
+        examples = dataBulk[2].split("\t");
+        
         //Construimos el dataset
-        for(int i = 1; i < examples.length; i++)
+        for (String example1 : examples)
         {
-            String example1 = examples[i];
             String[] atr = example1.split(",");//Atributos del ejemplos
             attributes = new Attribute[atr.length];
             
