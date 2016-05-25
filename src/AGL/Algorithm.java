@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public class Algorithm
 {
-    private final int sizePopulation = 30;
+    public static int sizePopulation = 30, limit = 5;
     private final Parse dataset;
     private Set<Rule> population;
     private final Random rnd;
@@ -45,7 +45,7 @@ public class Algorithm
         int numVoters = (int) (sizePopulation*0.9);
         ArrayList<Rule> parents;
         Set<Integer> validExamples = this.dataset.getValidExamples();
-        int numIterationsWithOutImprove = 0, limit = 150, countFail = 0, 
+        int numIterationsWithOutImprove = 0, countFail = 0, 
                 countGood = 0, vF = 0, vG = 0;
         double lastMeanEvaluation = this.getMeanEvaluationFunction(),
                 actualMeanEvaluation, pCrossing = 0.6;

@@ -99,7 +99,7 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
             context.write(new Text("true_positives"), new Text(Long.toString(confusionMatrix[0][0])));
             context.write(new Text("true_negatives"), new Text(Long.toString(confusionMatrix[1][1])));
             context.write(new Text("false_positives"), new Text(Long.toString(confusionMatrix[0][1])));
-            context.write(new Text("false_negative"), new Text(Long.toString(confusionMatrix[1][0])));
+            context.write(new Text("false_negatives"), new Text(Long.toString(confusionMatrix[1][0])));
             
             //Key: caso (positivos o negativos)
             

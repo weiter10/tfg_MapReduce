@@ -6,6 +6,7 @@
 package Driver_Operations;
 
 
+import AGL.Algorithm;
 import Hdfs_Operations.HdfsReader;
 import Job_Test.Test;
 import Job_Training.Training;
@@ -17,6 +18,7 @@ import Job_GlobalEvaluation.GlobalEvaluation;
 import Parse.ParseFileFromLocal;
 import Job_Training.MapTraining;
 import Job_Training.ReduceTraining;
+import Local_Storage_Operations.LocalStorageWrite;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -38,6 +40,7 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import java.io.BufferedReader;
+import java.time.LocalDateTime;
 
 
 /**
@@ -65,7 +68,14 @@ public class Driver
     public static void main(String[] args) throws Exception
     {
         String[] args2 = new String[2];
-        String nameFileOutputMR = "/output/part-r-00000";
+        String nameFileOutputMR = "/output/part-r-00000", str = "";
+        int numFolds = 1;//MAX 5
+        double[] accuracy = new double[numFolds];
+        double meanAccuracy = 0;
+        
+        for (int i = 0; i < numFolds; i++)
+            accuracy[i] = 0;
+        
         
         if(args.length < 4)
         {
@@ -82,7 +92,7 @@ public class Driver
         //--
         
         //Generamos 5 cross validation
-        for (int i = 1; i <= 2; i++)
+        for (int i = 1; i <= numFolds; i++)
         {
             //Borramos el directorio de salida de trabajos MapReduce
             args2[0] = "/output";
@@ -160,9 +170,67 @@ public class Driver
             args2[0] = nameFileOutputMR;
             args2[1] = args[3] + "/Test_" + i;
             ToolRunner.run(new HdfsReaderToLocal(), args2);
+            
+            //Obtenemos la precisión del clasificador
+            accuracy[i-1] = Driver.getAccuracy(nameFileOutputMR);
         }
         
+        //
+        for (int i = 0; i < numFolds; i++)
+        {
+            str += "Precision del clasificador " + (i+1) + ": " + accuracy[i] + "\n";
+            meanAccuracy += accuracy[i];
+        }
+        
+        str += "\nPrecision media del clasificador: " + meanAccuracy/numFolds;
+        str += "\n\nTamanio poblacion: " + Algorithm.sizePopulation + 
+                "\nNumero de iteraciones sin mejora: " + Algorithm.limit;
+        LocalStorageWrite.run(args[3] + "/Accuracy_" + LocalDateTime.now() + 
+                ".txt", str);
+        
         System.exit(0);
+    }
+    
+    
+    private static double getAccuracy(String fileName) throws Exception
+    {
+        String line;
+        String[] data;
+        double true_positives = 0, true_negatives = 0, false_positives = 0,
+                false_negatives = 0, resMinor, resMajor;
+        
+        //Obtenemos el buffer de lectura en HDFS
+        ToolRunner.run(new HdfsReader(), new String[] {fileName});
+        BufferedReader br = HdfsReader.br;
+        
+        while((line = br.readLine()) != null)
+        {
+            data = line.split("\t");
+            
+            switch(data[0])
+            {
+                case "true_positives":
+                    true_positives = Long.parseLong(data[1]);
+                    break;
+                    
+                case "true_negatives":
+                    true_negatives = Long.parseLong(data[1]);
+                    break;
+                    
+                case "false_positives":
+                    false_positives = Long.parseLong(data[1]);
+                    break;
+                    
+                case "false_negatives":
+                    false_negatives = Long.parseLong(data[1]);
+                    break;
+            }
+        }
+        
+        resMinor = true_positives/(true_positives + false_negatives);
+        resMajor = true_negatives/(true_negatives + false_positives);
+        
+        return Math.sqrt(resMinor * resMajor);
     }
     
     

@@ -32,8 +32,10 @@ public class GlobalEvaluation extends Configured implements Tool
         //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
                 //Long.toString(Driver.sizeTrainingSet/Driver.numMaps));
                 
-        conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                Long.toString(Driver.sizeGlobalEvaluationFile/4));
+        //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
+                //Long.toString(Driver.sizeGlobalEvaluationFile/13));
+                
+        conf.set("mapred.child.java.opts", "-XX:-UseGCOverheadLimit");
         
         Job job = new Job(conf, "GlobalEvaluation");
         

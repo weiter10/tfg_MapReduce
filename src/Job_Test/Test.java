@@ -28,6 +28,8 @@ public class Test extends Configured implements Tool
     {
         Configuration conf = getConf();
         
+        conf.set("mapred.child.java.opts", "-XX:-UseGCOverheadLimit");
+        
         Job job = new Job(conf, "TestFase");
         
         job.setJarByClass(Driver.class);
