@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +44,7 @@ import org.apache.hadoop.util.ToolRunner;
 public class MapTraining extends Mapper<LongWritable, Text, Text, Text>
 {
     private BufferedReader br = null;
+    private Context cont;
     
     public class HdfsReaderMap extends Configured implements Tool
     {
@@ -70,7 +73,8 @@ public class MapTraining extends Mapper<LongWritable, Text, Text, Text>
         {
             Random rnd = new Random();
             rnd.setSeed(System.nanoTime());
-            Algorithm alg = new Algorithm(value.toString());
+            Algorithm alg = new Algorithm(value.toString(), this);
+            this.cont = context;
             Set<Rule> finalRules = alg.run();
             
             for(Rule r : finalRules)
@@ -89,8 +93,16 @@ public class MapTraining extends Mapper<LongWritable, Text, Text, Text>
             
         }catch (Exception ex)
         {
-            context.write(new Text("Error MAP"), new Text(ex.getMessage() + "\n" + 
-                    ex.getLocalizedMessage() + "\n" + ex.toString()));
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            context.write(new Text("Error MAP"), new Text(exceptionAsString));
         }
+    }
+    
+    
+    public void continueWorking()
+    {
+        this.cont.progress();
     }
 }

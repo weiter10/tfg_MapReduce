@@ -8,6 +8,8 @@ package Job_Training;
 
 import Job_Training.InfoRule;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -79,7 +81,10 @@ public class ReduceTraining extends Reducer<Text, Text, Text, Text>
 
             }catch (Exception ex)
             {
-                context.write(new Text("Error REDUCE"), new Text(ex.getMessage() + "\n" + ex.getLocalizedMessage() + "\n" + ex.toString()));
+                StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                String exceptionAsString = sw.toString();
+                context.write(new Text("Error REDUCE"), new Text(exceptionAsString));
             }
         }
     }

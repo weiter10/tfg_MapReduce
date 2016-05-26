@@ -6,6 +6,8 @@
 package Job_GlobalEvaluation;
 
 import Driver_Operations.Driver;
+import Hdfs_Operations.HdfsReaderToLocal;
+import Hdfs_Operations.HdfsRemove;
 import Job_Training.ReduceTraining;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -17,30 +19,28 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 /**
  *
  * @author manu
  */
-public class GlobalEvaluation extends Configured implements Tool
-{
+public class GlobalEvaluation extends Configured implements Tool {
+
     @Override
-    public int run(String[] strings) throws Exception
-    {
+    public int run(String[] strings) throws Exception {
         Configuration conf = getConf();
-        
+
         //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                //Long.toString(Driver.sizeTrainingSet/Driver.numMaps));
-                
+        //Long.toString(Driver.sizeTrainingSet/Driver.numMaps));
         //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                //Long.toString(Driver.sizeGlobalEvaluationFile/13));
-                
+        //Long.toString(Driver.sizeGlobalEvaluationFile/13));
         conf.set("mapred.child.java.opts", "-XX:-UseGCOverheadLimit");
-        
+
         Job job = new Job(conf, "GlobalEvaluation");
-        
+
         job.setJarByClass(Driver.class);
-        
+
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
@@ -49,12 +49,42 @@ public class GlobalEvaluation extends Configured implements Tool
 
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
-        
+
         FileInputFormat.addInputPath(job, new Path("/input/" + Driver.nameGlobalEvaluationFile));
         FileOutputFormat.setOutputPath(job, new Path("/output"));
-        
+
         job.waitForCompletion(true);
-        
+
         return 0;
+    }
+
+    public static void main(String[] args) throws Exception
+    {
+        String[] args2 = new String[2];
+        String nameFileOutputMR = "/output/part-r-00000", str = "";
+        int i = 1;
+
+        if (args.length < 4)
+        {
+            System.err.println("Number of arguments incorrect");
+            System.err.println("Local_dataset_name Name_positive_class Num_colum_positive_class"
+                    + "File_output_name");
+            System.exit(1);
+        }
+
+        //Borramos el directorio de salida de trabajos MapReduce
+        args2[0] = "/output";
+        args2[1] = "";
+        ToolRunner.run(new HdfsRemove(), args2);
+
+        //Lanzamos la evaluación global
+        System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting GlobalEvaluation_" + i);
+        ToolRunner.run(new GlobalEvaluation(), args);
+        System.out.println("$$$$$$$$$$$$$$$$$$$$$-> GlobalEvaluation_" + i + " OK");
+
+        //Escribimos el resultado en el almacenamiento local
+        args2[0] = nameFileOutputMR;
+        args2[1] = args[3] + "/GlobalEvaluation_" + i;
+        ToolRunner.run(new HdfsReaderToLocal(), args2);
     }
 }

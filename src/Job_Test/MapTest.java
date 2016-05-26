@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,7 +45,6 @@ import org.apache.hadoop.util.ToolRunner;
  */
 public class MapTest extends Mapper<LongWritable, Text, Text, Text>
 {
-
     @Override
     public void map(LongWritable key, Text value, Context context)
             throws InterruptedException, IOException
@@ -59,6 +60,7 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
             //Cargamos las reglas
             ArrayList<Rule> rules = Parse.parseRules(data[2]);
             Example ex;
+            long start = System.currentTimeMillis(), elapsedTimeMillis;
             
             //Agregamos la clase minoritaria y mayoritaria al diccionario de 
             //índices
@@ -72,6 +74,15 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
             
             for(String exampleStr : data[3].split("\t"))
             {
+                elapsedTimeMillis = System.currentTimeMillis()-start;
+                //Si ha pasado mas de 400s informamos al context que seguimos trabajando
+                //para evitar que cancele el MAP
+                if(elapsedTimeMillis/1000F > 400)
+                {
+                    context.progress();
+                    start = System.currentTimeMillis();
+                }
+                
                 result = 0;
                 index = 0;
                 ex = Parse.parseExample(exampleStr);
@@ -108,8 +119,10 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
             
         }catch (Exception ex)
         {
-            context.write(new Text("Error MAP"), new Text(ex.getMessage() + "\n" + 
-                    ex.getLocalizedMessage() + "\n" + ex.toString()));
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            context.write(new Text("Error MAP"), new Text(exceptionAsString));
         }
     }
 }

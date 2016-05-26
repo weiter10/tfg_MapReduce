@@ -70,7 +70,7 @@ public class testAlgorithm
         File archivo = new File("/home/manu/datasetHDFS");
         FileReader fr = new FileReader (archivo);
         BufferedReader br = new BufferedReader(fr);
-        
+        /*
         Algorithm alg = new Algorithm(br.readLine());
         PriorityQueue<Rule> p = new PriorityQueue();
         p.addAll(alg.run());
@@ -80,7 +80,7 @@ public class testAlgorithm
         while(!p.isEmpty()) System.out.println(p.poll().show());
         
         System.out.println("Number of rules: " + size);
-        
+        */
         
         int nada = 0;
     }

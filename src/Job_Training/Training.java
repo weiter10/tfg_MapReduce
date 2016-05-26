@@ -6,6 +6,9 @@
 package Job_Training;
 
 import Driver_Operations.Driver;
+import Hdfs_Operations.HdfsReaderToLocal;
+import Hdfs_Operations.HdfsRemove;
+import Job_GlobalEvaluation.GlobalEvaluation;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -16,6 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 /**
  *
@@ -54,5 +58,36 @@ public class Training extends Configured implements Tool
         job.waitForCompletion(true);
         
         return 0;
+    }
+    
+    
+    public static void main(String[] args) throws Exception
+    {
+        String[] args2 = new String[2];
+        String nameFileOutputMR = "/output/part-r-00000", str = "";
+        int i = 1;
+
+        if (args.length < 4)
+        {
+            System.err.println("Number of arguments incorrect");
+            System.err.println("Local_dataset_name Name_positive_class Num_colum_positive_class"
+                    + "File_output_name");
+            System.exit(1);
+        }
+
+        //Borramos el directorio de salida de trabajos MapReduce
+        args2[0] = "/output";
+        args2[1] = "";
+        ToolRunner.run(new HdfsRemove(), args2);
+
+        //Lanzamos la tarea MR con los algoritmos genéticos
+        System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Starting Training_" + i);
+        ToolRunner.run(new Training(), args);
+        System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Training_" + i + " OK");
+
+        //Escribimos el resultado en el almacenamiento local
+        args2[0] = nameFileOutputMR;
+        args2[1] = args[3] + "/Training_" + i;
+        ToolRunner.run(new HdfsReaderToLocal(), args2);
     }
 }

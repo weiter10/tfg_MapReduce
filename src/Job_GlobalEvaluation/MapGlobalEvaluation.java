@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,8 +91,10 @@ public class MapGlobalEvaluation extends Mapper<LongWritable, Text, Text, Text>
             
         }catch (Exception ex)
         {
-            context.write(new Text("Error MAP"), new Text(ex.getMessage() + "\n" + 
-                    ex.getLocalizedMessage() + "\n" + ex.toString()));
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            context.write(new Text("Error MAP"), new Text(exceptionAsString));
         }
     }
 }

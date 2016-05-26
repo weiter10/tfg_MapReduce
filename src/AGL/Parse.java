@@ -5,6 +5,8 @@
  */
 package AGL;
 
+import Job_Training.MapTraining;
+import Job_Training.Training;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,7 +56,7 @@ public final class Parse
         return seedRandomNumbers;
     }
     
-    public Parse(String dataString) throws FileNotFoundException, IOException
+    public Parse(String dataString, MapTraining job) throws FileNotFoundException, IOException
     {
         Attribute[] attributes;
         Attribute at;
@@ -66,10 +68,20 @@ public final class Parse
         seedRandomNumbers = Integer.parseInt(dataBulk[0]);
         iR = Float.parseFloat(dataBulk[1]);
         examples = dataBulk[2].split("\t");
+        long start = System.currentTimeMillis(), elapsedTimeMillis;
         
         //Construimos el dataset
         for (String example1 : examples)
         {
+            elapsedTimeMillis = System.currentTimeMillis()-start;
+            //Si ha pasado mas de 400s informamos al context que seguimos trabajando
+            //para evitar que cancele el MAP
+            if(elapsedTimeMillis/1000F > 400)
+            {
+                start = System.currentTimeMillis();
+                job.continueWorking();
+            }
+            
             String[] atr = example1.split(",");//Atributos del ejemplos
             attributes = new Attribute[atr.length];
             

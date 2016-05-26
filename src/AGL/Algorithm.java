@@ -4,6 +4,8 @@
  * and open the template in the editor.
  */
 package AGL;
+import Job_Training.MapTraining;
+import Job_Training.Training;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,16 +23,18 @@ import java.util.Set;
  */
 public class Algorithm
 {
-    public static int sizePopulation = 30, limit = 5;
+    public static int sizePopulation = 30, limit = 200;
     private final Parse dataset;
     private Set<Rule> population;
     private final Random rnd;
     private final Set<Rule> finalRules;
+    public MapTraining job;
     
     
-    public Algorithm(String dataString) throws FileNotFoundException, IOException
+    public Algorithm(String dataString, MapTraining job) throws FileNotFoundException, IOException
     {
-        dataset = new Parse(dataString);
+        this.job = job;
+        dataset = new Parse(dataString, job);
         this.rnd = new Random();
         this.rnd.setSeed(dataset.getSeedRandomNumbers());
         this.finalRules = new HashSet();
@@ -53,10 +57,20 @@ public class Algorithm
         Rule best;
         PriorityQueue<Rule> populationOrdered = new PriorityQueue(Collections.reverseOrder()),
                 orderedByEF = new PriorityQueue(Rule.comparatorByEF());
+        long start = System.currentTimeMillis(), elapsedTimeMillis;
         //--
         
         while(validExamples.size() > 1)
         {
+            elapsedTimeMillis = System.currentTimeMillis()-start;
+            //Si ha pasado mas de 400s informamos al context que seguimos trabajando
+            //para evitar que cancele el MAP
+            if(elapsedTimeMillis/1000F > 400)
+            {
+                job.continueWorking();
+                start = System.currentTimeMillis();
+            }
+            
             //Ojo, en el código original está puesto el valor del clasificador
             if(numIterationsWithOutImprove < limit)
             {
@@ -65,11 +79,13 @@ public class Algorithm
                 if(numVoters > validExamples.size()) numVoters = validExamples.size();
                 if(numVoters%2 != 0) numVoters--;//Obligamos a que los padres sean pares
                 Set<Rule> sR = new HashSet(parents);
+                
                 if(sR.size() != numVoters)
                 {
                     vF++;
                     System.out.println("Resultado del US: " + sR.size() + " en lugar de " + numVoters);
                 }
+                
                 else vG++;
 
                 for(int posi = 0; posi < parents.size(); posi += 2)
