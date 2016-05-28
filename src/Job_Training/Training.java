@@ -15,6 +15,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -31,11 +32,6 @@ public class Training extends Configured implements Tool
     public int run(String[] strings) throws Exception
     {
         Configuration conf = getConf();
-        //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                //Long.toString(Driver.sizeTrainingSet/Driver.numMaps));
-                
-        //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                //Long.toString(Driver.sizeTrainingSetFile/4));
                 
         conf.set("mapred.child.java.opts", "-XX:-UseGCOverheadLimit");
         
@@ -52,7 +48,8 @@ public class Training extends Configured implements Tool
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         
-        FileInputFormat.addInputPath(job, new Path("/input/" + Driver.nameTrainingSetFile));
+        Path p = new Path(Driver.pathFolderTraining);
+        MultipleInputs.addInputPath(job, p, TextInputFormat.class, MapTraining.class);
         FileOutputFormat.setOutputPath(job, new Path("/output"));
         
         job.waitForCompletion(true);

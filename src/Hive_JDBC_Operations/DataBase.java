@@ -6,6 +6,7 @@
 package Hive_JDBC_Operations;
 
 import Driver_Operations.Driver;
+import Hdfs_Operations.HdfsWriter;
 import Parse.ParseFileFromLocal;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.hadoop.util.ToolRunner;
 
 /**
  *
@@ -203,8 +205,8 @@ public abstract class DataBase
      * @throws IOException 
      */
     public static void writeTestSet(String sourceTestSetPos, String sourceTestSetNeg,
-            String sourceRules, int testFold, int[] numBits, BufferedWriter bw)
-            throws IOException
+            int testFold, int[] numBits)
+            throws IOException, Exception
     {
         try
         {
@@ -216,7 +218,7 @@ public abstract class DataBase
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             String data = "", binaryValue;
-            int limit = Driver.limit;
+            int limit = Driver.limit, count = 0;
             
             while(rs.next())
             {
@@ -224,7 +226,6 @@ public abstract class DataBase
                 for (int i = 1; i < columnsNumber; i++)
                 {
                     binaryValue = ParseFileFromLocal.createBinaryValue(numBits[i-1], rs.getInt(i));
-                        
                     data += binaryValue + ",";
                 }
                 
@@ -232,17 +233,20 @@ public abstract class DataBase
                 
                 if(data.length() > limit)
                 {
+                    //Obtenemos el buffer de escritura en HDFS
+                    ToolRunner.run(new HdfsWriter(), new String[] {Driver.pathFolderTestFile + "/" + count});
+                    BufferedWriter bw = HdfsWriter.bw;
+                    count++;
+                    
                     //Escribimos la clase minoritaria
                     bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
                     //Escribimos la clase mayoritaria
                     bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
-                    //Escribimos las reglas
-                    DataBase.writeOrderedRulesInFile(sourceRules, bw);
-                    bw.write("\t");
                     //Escribimos los ejemplos
                     bw.write(data);
                     bw.write("\n");
                     data = "";
+                    bw.close();
                 }
             }
             
@@ -264,31 +268,35 @@ public abstract class DataBase
                 
                 if(data.length() > limit)
                 {
+                    //Obtenemos el buffer de escritura en HDFS
+                    ToolRunner.run(new HdfsWriter(), new String[] {Driver.pathFolderTestFile + "/" + count});
+                    BufferedWriter bw = HdfsWriter.bw;
+                    count++;
+                    
                     //Escribimos la clase minoritaria
                     bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
                     //Escribimos la clase mayoritaria
                     bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
-                    //Escribimos las reglas
-                    DataBase.writeOrderedRulesInFile(sourceRules, bw);
-                    bw.write("\t");
                     //Escribimos los ejemplos
                     bw.write(data);
                     bw.write("\n");
                     data = "";
+                    bw.close();
                 }
             }
             
+            //Obtenemos el buffer de escritura en HDFS
+            ToolRunner.run(new HdfsWriter(), new String[] {Driver.pathFolderTestFile + "/" + count});
+            BufferedWriter bw = HdfsWriter.bw;
+
             //Escribimos la clase minoritaria
             bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
             //Escribimos la clase mayoritaria
             bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
-            //Escribimos las reglas
-            DataBase.writeOrderedRulesInFile(sourceRules, bw);
-            bw.write("\t");
             //Escribimos los ejemplos
             bw.write(data);
             bw.write("\n");
-            
+            bw.close();
             con.close();
             
         } catch (SQLException ex)
@@ -489,7 +497,8 @@ public abstract class DataBase
     
     
     /**
-     * Escribe en el fichero las reglas almacenadas en la tabla.
+     * Escribe en el fichero las reglas almacenadas en la tabla. Las reglas se escriben
+     * en una linea y separadas por tabulaciones
      * @param tableName
      * @param bw
      * @throws IOException 

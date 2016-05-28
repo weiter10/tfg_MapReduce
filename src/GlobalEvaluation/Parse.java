@@ -24,20 +24,19 @@ import java.util.Set;
  */
 public class Parse
 {
-    private Set<Rule> rules;
-    private Set<Example> examples;
+    private final Set<Rule> rules;
+    private final Set<Example> examples;
     
-    public Parse(String data) throws FileNotFoundException, IOException
+    public Parse(String examplesBulk, String rulesBulk) throws FileNotFoundException, IOException
     {
         Attribute[] attributes;
         Attribute at;
         rules = new HashSet();
         examples = new HashSet();
-        String[] rulesStr, examplesStr, tmpStr;
+        String[] rulesStr, examplesStr;
 
-        tmpStr = data.split("\t\t");
-        examplesStr = tmpStr[3].split("\t");
-        rulesStr = tmpStr[0].split("\t");
+        examplesStr = examplesBulk.split("\t");
+        rulesStr = rulesBulk.split("\t");
 
         
         //Contruimos el dataset

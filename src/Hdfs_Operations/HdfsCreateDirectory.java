@@ -22,7 +22,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-public class HdfsRemove extends Configured implements Tool
+public class HdfsCreateDirectory extends Configured implements Tool
 {
     public static final String FS_PARAM_NAME = "fs.defaultFS";
     public static BufferedWriter br;
@@ -32,10 +32,7 @@ public class HdfsRemove extends Configured implements Tool
     {
         FileSystem fs = FileSystem.get(getConf());
         Path path = new Path(args[0]);
-        
-        if(fs.exists(path))
-            fs.delete(path, true); // delete file, true for recursive 
-        
+        fs.mkdirs(path);
         fs.close();
         
         return 0;

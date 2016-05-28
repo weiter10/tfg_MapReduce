@@ -5,9 +5,11 @@
  */
 package Job_GlobalEvaluation;
 
+import Driver_Operations.Driver;
 import GlobalEvaluation.Example;
 import GlobalEvaluation.Parse;
 import GlobalEvaluation.Rule;
+import Hdfs_Operations.HdfsReader;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -48,14 +50,27 @@ import org.apache.hadoop.util.ToolRunner;
 public class MapGlobalEvaluation extends Mapper<LongWritable, Text, Text, Text>
 {
 
+    /**
+     * El MAP recibe los ejemplos, los mismo que en la fase de training. Tiene
+     * que leer las reglas de HDFS
+     * @param key
+     * @param value
+     * @param context
+     * @throws InterruptedException
+     * @throws IOException 
+     */
     @Override
     public void map(LongWritable key, Text value, Context context)
             throws InterruptedException, IOException
     {
         try
         {
+            //Obtenemos el buffer de lectura en HDFS para leer las reglas
+            ToolRunner.run(new HdfsReader(), new String[] {"/input/" + Driver.nameGlobalEvaluationFile});
+            BufferedReader br = HdfsReader.br;
+            
             Rule best;
-            Parse parse = new Parse(value.toString());
+            Parse parse = new Parse(value.toString(), br.readLine());
             Set<Rule> rules = parse.getRules();
             Set<Example> examples = parse.getExamples(), coveredPositives;
             PriorityQueue<Rule> orderedRules = new PriorityQueue(Collections.reverseOrder());
