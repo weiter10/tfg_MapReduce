@@ -23,7 +23,7 @@ import java.util.Set;
  */
 public class Algorithm
 {
-    public static int sizePopulation = 35, limit = 200;
+    public static int sizePopulation = 35, limit = 15;
     private final Parse dataset;
     private Set<Rule> population;
     private final Random rnd;
