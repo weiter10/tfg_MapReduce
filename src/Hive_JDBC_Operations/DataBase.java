@@ -645,4 +645,57 @@ public abstract class DataBase
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    
+    /**
+     * 
+     * @param tablePos
+     * @param tableNeg
+     * @param fileName
+     * @param numBits
+     * @throws IOException 
+     */
+    /*
+    public static void writeBalancedDataBinaryFormat(String tablePos, 
+            String tableNeg, String fileName, int[] numBits) throws IOException
+    {
+        try
+        {
+            Connection con = HiveConnect.getConnection();
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName + " WHERE "
+                    + "id >= " + init + " and id <= " + end);
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            String data = "", binaryValue;
+            int limit = Driver.limit;
+            
+            while(rs.next())
+            {
+                //El id lo dejamos fuera
+                for (int i = 1; i < columnsNumber; i++)
+                {
+                    binaryValue = ParseFileFromLocal.createBinaryValue(numBits[i-1], rs.getInt(i));
+                        
+                    data += binaryValue + ",";
+                }
+                
+                data += "\t";
+                
+                if(data.length() > limit)
+                {
+                    bw.write(data);
+                    data = "";
+                }
+            }
+            
+            bw.write(data);
+            con.close();
+            
+        } catch (SQLException ex)
+        {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    */
 }

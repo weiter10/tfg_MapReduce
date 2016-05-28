@@ -50,7 +50,7 @@ public class GlobalEvaluation extends Configured implements Tool {
         job.setOutputFormatClass(TextOutputFormat.class);
 
         Path p = new Path(Driver.pathFolderTraining);
-        MultipleInputs.addInputPath(job, p, TextInputFormat.class, MapTraining.class);
+        MultipleInputs.addInputPath(job, p, TextInputFormat.class, MapGlobalEvaluation.class);
         FileOutputFormat.setOutputPath(job, new Path("/output"));
 
         job.waitForCompletion(true);

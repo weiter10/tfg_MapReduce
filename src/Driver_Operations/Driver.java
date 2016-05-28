@@ -118,7 +118,7 @@ public class Driver
             
             //Generamos los ficheros a través de los cuales se lanzarán los AGL
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing Dataset in HDFS");
-            Driver.generateTrainingSetFileNB(Driver.nameTrainingSetFile, i);
+            Driver.generateTrainingSetFileNB(i);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
             
             //Lanzamos la tarea MR con los algoritmos genéticos
@@ -138,7 +138,7 @@ public class Driver
             
             //Creamos el fichero de entrada para la evaluación global
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing globalEvaluation file in HDFS");
-            Driver.generateGlobalEvatuationFile(Driver.nameTrainingSetFile, nameFileOutputMR);
+            Driver.generateGlobalEvatuationFile(nameFileOutputMR);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> GlobalEvaluation file in HDFS OK");
             
             //Escribimos el fichero de entrada de la evaluación global en el
@@ -192,7 +192,7 @@ public class Driver
             //Obtenemos la precisión del clasificador
             accuracy[i-1] = Driver.getAccuracy(nameFileOutputMR);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> AccuracyFold_" + i + ": "
-                    + "accuracy[i-1]");
+                    + accuracy[i-1]);
             
         }
         
@@ -264,8 +264,7 @@ public class Driver
      * @param fileRulesName
      * @throws Exception 
      */
-    private static void generateGlobalEvatuationFile(String trainingSetFileName, 
-            String fileRulesName) throws Exception
+    private static void generateGlobalEvatuationFile(String fileRulesName) throws Exception
     {
         //Introducimos las reglas en Hive
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing bulk rules in Hive");
@@ -323,7 +322,7 @@ public class Driver
     }
     
     
-    private static void generateTrainingSetFileNB(String fileName, int testFold) throws Exception
+    private static void generateTrainingSetFileNB(int testFold) throws Exception
     {
         long positiveSize, negativeSize;
         long value, sizeSubsection;
@@ -360,7 +359,7 @@ public class Driver
             Driver.numAGL++;
             //Obtenemos el buffer de escritura en HDFS
             ToolRunner.run(new HdfsWriter(), new String[] {pathFolderTraining + 
-                    "/" + fileName + i});
+                    "/" + nameTrainingSetFile + i});
             BufferedWriter bw = HdfsWriter.bw;
             
             value = (i*positiveSize)+1;
@@ -387,7 +386,7 @@ public class Driver
             
             //Obtenemos el buffer de escritura en HDFS
             ToolRunner.run(new HdfsWriter(), new String[] {pathFolderTraining + 
-                    "/" + fileName + (((int)iR)+1)});
+                    "/" + nameTrainingSetFile + (((int)iR)+1)});
             BufferedWriter bw = HdfsWriter.bw;
             
             value = (((int)iR)*positiveSize)+1;
@@ -418,8 +417,8 @@ public class Driver
         */
     }
     
-    
-    private static void generateTrainingSetFileB(String fileName, int testFold) throws Exception
+    /*
+    private static void generateTrainingSetFileB(int testFold) throws Exception
     {
         long positiveSize, negativeSize;
         long value, sizeSubsection;
@@ -446,10 +445,8 @@ public class Driver
         positiveSize = DataBase.getNumRows(Driver.nameTableTrainingPos);
         negativeSize = DataBase.getNumRows(Driver.nameTableTrainingNeg);
         
-        //El IR del dataset que recibe el genético va a ser 1, ya que las clases
-        //están totalmente balanceadas
-        int irAGL = 1;
-        iR = Driver.calculateIRFold();
+        DataBase.writeBalancedDataBinaryFormat(nameTableTrainingPos, nameTableTrainingNeg
+                , pathFolderTraining + "/" + nameTrainingSetFile, numBits);
         
         for (int i = 0; i < (int)iR; i++)
         {
@@ -475,7 +472,7 @@ public class Driver
             bw.close();//Cerramos el buffer de escritura HDFS
         }
     }
-    
+    */
     
     private static void showDataIntegerFormat(String data)
     {
