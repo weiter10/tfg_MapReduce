@@ -192,7 +192,7 @@ public class Algorithm
             }
             
             //Error si el tamaño de la población es distinto que el configurado
-            if(this.population.size() != this.sizePopulation)
+            if(this.population.size() != sizePopulation)
             {
                 System.err.println("Size: " + this.population.size());
             }

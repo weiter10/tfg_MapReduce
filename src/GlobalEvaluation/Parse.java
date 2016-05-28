@@ -35,7 +35,7 @@ public class Parse
         examples = new HashSet();
         String[] rulesStr, examplesStr;
 
-        examplesStr = examplesBulk.split("\t");
+        examplesStr = examplesBulk.split("\t\t")[2].split("\t");
         rulesStr = rulesBulk.split("\t");
 
         

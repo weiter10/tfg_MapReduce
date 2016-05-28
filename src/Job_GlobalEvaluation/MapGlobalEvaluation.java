@@ -100,9 +100,6 @@ public class MapGlobalEvaluation extends Mapper<LongWritable, Text, Text, Text>
                         + "\t" + best.getPositives() + "\t" + best.getNegatives() +
                         "\t" + best.getEvaluationFunction() + "\t" + best.getPi()));
             }
-                
-            
-            
             
         }catch (Exception ex)
         {

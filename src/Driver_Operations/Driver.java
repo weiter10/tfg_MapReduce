@@ -118,7 +118,7 @@ public class Driver
             
             //Generamos los ficheros a través de los cuales se lanzarán los AGL
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing Dataset in HDFS");
-            Driver.generateTrainingSetFile(Driver.nameTrainingSetFile, i);
+            Driver.generateTrainingSetFileNB(Driver.nameTrainingSetFile, i);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
             
             //Lanzamos la tarea MR con los algoritmos genéticos
@@ -159,11 +159,11 @@ public class Driver
             
             //Escribimos el resultado en el almacenamiento local
             args2[0] = nameFileOutputMR;
-            args2[1] = args[3] + "/GlobalEvaluation_" + i;
+            args2[1] = args[3] + "/GlobalEvaluationOutput_" + i;
             ToolRunner.run(new HdfsReaderToLocal(), args2);
             
             //Creamos el fichero con las reglas ordenadas por PI
-            //Y una serie de ficheros con los datos de test que serán, directorio que
+            //Y una serie de ficheros con los datos de test que serán el directorio que
             //contiene a estos ficheros será en de entrada del MAP
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing testSet in HDFS");
             Driver.generateTestSetFile(i, nameFileOutputMR);
@@ -323,7 +323,7 @@ public class Driver
     }
     
     
-    private static void generateTrainingSetFile(String fileName, int testFold) throws Exception
+    private static void generateTrainingSetFileNB(String fileName, int testFold) throws Exception
     {
         long positiveSize, negativeSize;
         long value, sizeSubsection;
@@ -416,6 +416,64 @@ public class Driver
         Driver.showDataBinaryFormat(positiveExamples);
         System.out.println("-------------------------------------------------------------");
         */
+    }
+    
+    
+    private static void generateTrainingSetFileB(String fileName, int testFold) throws Exception
+    {
+        long positiveSize, negativeSize;
+        long value, sizeSubsection;
+        int[] numBits, trainingFolds = new int[4];
+        float iR;
+        
+        //Escogemos los folds para training
+        for (int i=1, j=0; i <= 5; i++, j++)
+        {
+            if(i != testFold)
+                trainingFolds[j] = i;
+
+            else j--;
+        }
+        
+        System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Training folds " + Arrays.toString(trainingFolds));
+        System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Test fold: " + testFold);
+        
+        //Construimos las tablas de Training
+        DataBase.createTrainingTable(Driver.nameBigTablePos, Driver.nameTableTrainingPos, trainingFolds);
+        DataBase.createTrainingTable(Driver.nameBigTableNeg, Driver.nameTableTrainingNeg, trainingFolds);
+        
+        numBits = ParseFileFromLocal.getNumBits();
+        positiveSize = DataBase.getNumRows(Driver.nameTableTrainingPos);
+        negativeSize = DataBase.getNumRows(Driver.nameTableTrainingNeg);
+        
+        //El IR del dataset que recibe el genético va a ser 1, ya que las clases
+        //están totalmente balanceadas
+        int irAGL = 1;
+        iR = Driver.calculateIRFold();
+        
+        for (int i = 0; i < (int)iR; i++)
+        {
+            Driver.numAGL++;
+            //Obtenemos el buffer de escritura en HDFS
+            ToolRunner.run(new HdfsWriter(), new String[] {pathFolderTraining + 
+                    "/" + fileName + i});
+            BufferedWriter bw = HdfsWriter.bw;
+            
+            value = (i*positiveSize)+1;
+            
+            //Escribimos la semilla aleatoria y el IR
+            bw.write(Driver.countSeedRnd + "\t\t" + irAGL + "\t\t");
+            Driver.countSeedRnd++;
+            
+            //Escribimos los ejemplos positivos
+            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingPos, numBits, 1, positiveSize, bw);
+            
+            //Escribimos los ejemplos negativos
+            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, value, value+positiveSize-1, bw);
+            bw.write("\n");
+            
+            bw.close();//Cerramos el buffer de escritura HDFS
+        }
     }
     
     
