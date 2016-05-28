@@ -178,7 +178,6 @@ public class Driver
         }
         
         //
-        
         str = args[0] + "\n";
         
         for (int i = 0; i < numFolds; i++)
