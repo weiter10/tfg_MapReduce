@@ -68,8 +68,8 @@ public class Driver
     public static void main(String[] args) throws Exception
     {
         String[] args2 = new String[2];
-        String nameFileOutputMR = "/output/part-r-00000", str = "";
-        int numFolds = 1;//MAX 5
+        String nameFileOutputMR = "/output/part-r-00000", str;
+        int numFolds = 5;//MAX 5
         double[] accuracy = new double[numFolds];
         double meanAccuracy = 0;
         
@@ -173,9 +173,14 @@ public class Driver
             
             //Obtenemos la precisión del clasificador
             accuracy[i-1] = Driver.getAccuracy(nameFileOutputMR);
+            System.out.println("$$$$$$$$$$$$$$$$$$$$$-> AccuracyFold_" + i + ": "
+                    + "accuracy[i-1]");
         }
         
         //
+        
+        str = args[0] + "\n";
+        
         for (int i = 0; i < numFolds; i++)
         {
             str += "Precision del clasificador " + (i+1) + ": " + accuracy[i] + "\n";

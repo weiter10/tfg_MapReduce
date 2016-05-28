@@ -35,7 +35,7 @@ public class Training extends Configured implements Tool
                 //Long.toString(Driver.sizeTrainingSet/Driver.numMaps));
                 
         //conf.set("mapreduce.input.fileinputformat.split.maxsize", 
-                //Long.toString(Driver.sizeTrainingSetFile/13));
+                //Long.toString(Driver.sizeTrainingSetFile/4));
                 
         conf.set("mapred.child.java.opts", "-XX:-UseGCOverheadLimit");
         
