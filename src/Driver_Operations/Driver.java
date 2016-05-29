@@ -70,7 +70,7 @@ public class Driver
     {
         String[] args2 = new String[2];
         String nameFileOutputMR = pathFolderOutputMR + "/part-r-00000", str;
-        int numFolds = 1;//MAX 5
+        int numFolds = 5;//MAX 5
         double[] accuracy = new double[numFolds];
         double meanAccuracy = 0;
         
