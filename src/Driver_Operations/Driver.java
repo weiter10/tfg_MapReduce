@@ -78,15 +78,22 @@ public class Driver
             accuracy[i] = 0;
         
         
-        if(args.length < 4)
+        if(args.length < 8)
         {
             System.err.println("Number of arguments incorrect");
             System.err.println("Local_dataset_name Name_positive_class Num_colum_positive_class"
-                    + "Separator File_output_name Balanced(yes/no)");
+                    + " Separator File_output_name Balanced(yes/no)" + " SizePopullaion "
+                    + "numIterationsWithOutImprove");
             System.exit(1);
         }
+        /*
+        //Inicializamos las variables
+        Algorithm.sizePopulation = Integer.parseInt(args[6]);
+        Algorithm.limit = Integer.parseInt(args[7]);
         
-        
+        System.out.println("Poblacion: " + Algorithm.sizePopulation);
+        System.out.println("Limite: " + Algorithm.limit);
+        */
         //Introducimos el fichero en el data warehouse
         ParseFileFromLocal.parse(args[0], args[1], Integer.parseInt(args[2]), args[3]);
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Data warehouse OK");
@@ -219,7 +226,12 @@ public class Driver
         System.exit(0);
     }
     
-    
+    /**
+     * Obtiene la precisión del clasificador
+     * @param fileName
+     * @return
+     * @throws Exception 
+     */
     private static double getAccuracy(String fileName) throws Exception
     {
         String line;
@@ -325,7 +337,11 @@ public class Driver
         return (float)numNeg/numPos;
     }
     
-    
+    /**
+     * Genera el traning set para clases no balanceadas
+     * @param testFold
+     * @throws Exception 
+     */
     private static void generateTrainingSetFileNB(int testFold) throws Exception
     {
         long positiveSize, negativeSize;
@@ -418,7 +434,11 @@ public class Driver
         */
     }
     
-    
+    /**
+     * Genera los training set para clases balanceadas
+     * @param testFold
+     * @throws Exception 
+     */
     private static void generateTrainingSetFileB(int testFold) throws Exception
     {
         long positiveSize, negativeSize;

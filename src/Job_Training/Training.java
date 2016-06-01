@@ -5,6 +5,7 @@
  */
 package Job_Training;
 
+import AGL.Algorithm;
 import Driver_Operations.Driver;
 import Hdfs_Operations.HdfsReaderToLocal;
 import Hdfs_Operations.HdfsRemove;
@@ -63,14 +64,13 @@ public class Training extends Configured implements Tool
         String[] args2 = new String[2];
         String nameFileOutputMR = "/output/part-r-00000", str = "";
         int i = 1;
-
-        if (args.length < 4)
-        {
-            System.err.println("Number of arguments incorrect");
-            System.err.println("Local_dataset_name Name_positive_class Num_colum_positive_class"
-                    + "File_output_name");
-            System.exit(1);
-        }
+        
+        //Inicializamos las variables
+        Algorithm.sizePopulation = Integer.parseInt(args[6]);
+        Algorithm.limit = Integer.parseInt(args[7]);
+        
+        System.out.println("Poblacion: " + Algorithm.sizePopulation);
+        System.out.println("Limite: " + Algorithm.limit);
 
         //Borramos el directorio de salida de trabajos MapReduce
         args2[0] = "/output";
@@ -84,7 +84,7 @@ public class Training extends Configured implements Tool
 
         //Escribimos el resultado en el almacenamiento local
         args2[0] = nameFileOutputMR;
-        args2[1] = args[3] + "/Training_" + i;
+        args2[1] = args[4] + "/Training_" + i;
         ToolRunner.run(new HdfsReaderToLocal(), args2);
     }
 }

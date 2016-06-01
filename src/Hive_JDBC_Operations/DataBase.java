@@ -6,7 +6,6 @@
 package Hive_JDBC_Operations;
 
 import Driver_Operations.Driver;
-import static Driver_Operations.Driver.pathFolderTraining;
 import Hdfs_Operations.HdfsWriter;
 import Parse.ParseFileFromLocal;
 import java.io.BufferedWriter;

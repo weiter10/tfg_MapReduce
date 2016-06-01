@@ -23,12 +23,12 @@ import java.util.Set;
  */
 public class Algorithm
 {
-    public static int sizePopulation = 35, limit = 200;
+    public static int sizePopulation = 35, limit = 50000;
     private final Parse dataset;
     private Set<Rule> population;
     private final Random rnd;
     private final Set<Rule> finalRules;
-    public MapTraining job;
+    public MapTraining job = null;
     private final int sizeTournament = sizePopulation/10;
     
     
@@ -40,7 +40,15 @@ public class Algorithm
         this.rnd.setSeed(dataset.getSeedRandomNumbers());
         this.finalRules = new HashSet();
     }
-    
+    /*
+    public Algorithm(String dataString) throws FileNotFoundException, IOException
+    {
+        dataset = new Parse(dataString);
+        this.rnd = new Random();
+        this.rnd.setSeed(dataset.getSeedRandomNumbers());
+        this.finalRules = new HashSet();
+    }
+    */
     
     public Set<Rule> run()
     {
@@ -63,10 +71,16 @@ public class Algorithm
         
         while(validExamples.size() > 1)
         {
+            //Error si el tamaño de la población es distinto que el configurado
+            if(this.population.size() != sizePopulation)
+            {
+                System.err.println("Size: " + this.population.size());
+            }
+            
             elapsedTimeMillis = System.currentTimeMillis()-start;
             //Si ha pasado mas de 400s informamos al context que seguimos trabajando
             //para evitar que cancele el MAP
-            if(elapsedTimeMillis/1000F > 400)
+            if(elapsedTimeMillis/1000F > 400 && job != null)
             {
                 job.continueWorking();
                 start = System.currentTimeMillis();
@@ -113,7 +127,8 @@ public class Algorithm
                             orderedByEF.add(coupleParents[i]);
                             //Añadimos el hijo solo si no es un cromosoma trivial,
                             //todo "0" o todo "1"
-                            if(rules[i].validChromosome()) orderedByEF.add(rules[i]);
+                            if(rules[i].validChromosome())
+                                orderedByEF.add(rules[i]);
                         }
                         
                         //Quitamos los elementos repetidos
@@ -182,33 +197,39 @@ public class Algorithm
                 int size = this.population.size();
                 
                 while(size == this.population.size())
-                    this.population.add(Rule.generateRandomRule(rnd, best.getPattern(), dataset));
+                {
+                    Rule r = Rule.generateRandomRule(rnd, best.getPattern(), dataset);
+                    
+                    if(r.validChromosome())
+                        this.population.add(r);
+                }
                 
                 //Actualizamos el performance de todas las reglas
-                for(Rule rule : this.population) rule.updatePerformance();
+                for(Rule rule : this.population)
+                    rule.updatePerformance();
                 
                 numIterationsWithOutImprove = 0;
                 populationOrdered.clear();
-            }
-            
-            //Error si el tamaño de la población es distinto que el configurado
-            if(this.population.size() != sizePopulation)
-            {
-                System.err.println("Size: " + this.population.size());
             }
         }
         
         //Si nos queda un ejemplo por cubrir, añadimos una regla que lo cubre al
         //conjunto de reglas finales
-        if(validExamples.size() == 1)
+        while(validExamples.size() == 1)
         {
             Rule r = this.sownOperator(this.dataset.getData().get(validExamples.iterator().next()));
-            this.finalRules.add(r);
+            
+            if(r.validChromosome())
+            {
+                this.finalRules.add(r);
+                this.dataset.removeCoverExamples(r);
+            }
         }
         
         dataset.resetValidExamples();
         
-        for(Rule r : this.finalRules) r.updatePerformance();
+        for(Rule r : this.finalRules)
+            r.updatePerformance();
         
         
         //System.out.println("countFail: " + countFail);
@@ -398,11 +419,19 @@ public class Algorithm
     {
         int[] pattern = ex.getPattern();
         Rule rule;
-                
+        
         rule = Rule.generateRandomRule(rnd, pattern, new Attribute(ex.getClassAttribute()), this.dataset);
         
         //Comprobar la regla con el ejemplo, y modificar la regla si procede.
         rule.modifyToCover(ex);
+        
+        while(!rule.validChromosome())
+        {
+            rule = Rule.generateRandomRule(rnd, pattern, new Attribute(ex.getClassAttribute()), this.dataset);
+        
+            //Comprobar la regla con el ejemplo, y modificar la regla si procede.
+            rule.modifyToCover(ex);
+        }
         
         return rule;
     }
@@ -426,7 +455,12 @@ public class Algorithm
             int size = initialPopulation.size();
             
             while(initialPopulation.size() == size)
-                initialPopulation.add(this.sownOperator(data.get(validExamples.get(posi))));
+            {
+                Rule r = this.sownOperator(data.get(validExamples.get(posi)));
+                
+                if(r.validChromosome())
+                    initialPopulation.add(r);
+            }
             
             validExamples.remove(posi);
         }

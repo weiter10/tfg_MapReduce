@@ -128,6 +128,70 @@ public final class Parse
         this.minorClass = tmp;
     }
     
+    /*
+    public Parse(String dataString) throws FileNotFoundException, IOException
+    {
+        Attribute[] attributes;
+        Attribute at;
+        String[] dataBulk, examples;
+        this.data = new ArrayList();
+        this.validExamples = new HashSet();
+
+        dataBulk = dataString.split("\t\t");
+        seedRandomNumbers = Integer.parseInt(dataBulk[0]);
+        iR = Float.parseFloat(dataBulk[1]);
+        examples = dataBulk[2].split("\t");
+        long start = System.currentTimeMillis(), elapsedTimeMillis;
+        
+        //Construimos el dataset
+        for (String example1 : examples)
+        {
+            String[] atr = example1.split(",");//Atributos del ejemplos
+            attributes = new Attribute[atr.length];
+            
+            if(mapAtr == null)
+            {
+                mapAtr = new HashMap[atr.length];
+                
+                for (int j = 0; j < mapAtr.length; j++) mapAtr[j] = new HashMap();
+            }
+            
+            //Para cada atributo del ejemplo
+            for (int j = 0; j < atr.length; j++)
+            {
+                at = new Attribute(atr[j].toCharArray());
+                
+                if(!mapAtr[j].containsKey(at)) mapAtr[j].put(at, new HashSet());
+                
+                //Añadimos indice del ejemplo con el valor del atributo
+                mapAtr[j].get(at).add(data.size());
+                attributes[j] = at;
+            }
+            
+            //añadimos el ejemplo al dataset
+            this.data.add(new Example(attributes));
+        }
+
+        this.resetValidExamples();
+        
+        //Obtenemos la clase minoritaria
+        Map<Attribute,Set<Integer>> mapClass = this.mapAtr[this.mapAtr.length-1];
+        Set<Attribute> sA = mapClass.keySet();
+        int numE = 0;
+        Attribute tmp = null;
+        
+        for(Attribute atr : sA)
+        {
+            if(numE == 0 || mapClass.get(atr).size() < numE)
+            {
+                numE = mapClass.get(atr).size();
+                tmp = atr;
+            }
+        }
+        
+        this.minorClass = tmp;
+    }
+    */
     
     public void resetValidExamples()
     {
