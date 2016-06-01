@@ -67,9 +67,12 @@ public class testAlgorithm
         
         
         //File archivo = new File("/home/manu/Dropbox/gradoInformatica/4 Cuarto/2 Cuatrimestre/TFG/Dataset/datasetHDFS");
-        File archivo = new File("/home/manu/datasetHDFS");
+        File archivo = new File(args[0]);
         FileReader fr = new FileReader (archivo);
         BufferedReader br = new BufferedReader(fr);
+        
+        Algorithm.sizePopulation = 35;
+        Algorithm.limit = 50000;
         /*
         Algorithm alg = new Algorithm(br.readLine());
         PriorityQueue<Rule> p = new PriorityQueue();
@@ -77,7 +80,8 @@ public class testAlgorithm
         
         int size = p.size();
         
-        while(!p.isEmpty()) System.out.println(p.poll().show());
+        while(!p.isEmpty())
+            System.out.println(p.poll().show());
         
         System.out.println("Number of rules: " + size);
         */

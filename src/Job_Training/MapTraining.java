@@ -64,17 +64,18 @@ public class MapTraining extends Mapper<LongWritable, Text, Text, Text>
     }
     
     
-    
     @Override
     public void map(LongWritable key, Text value, Context context)
             throws InterruptedException, IOException
     {
         try
         {
-            Random rnd = new Random();
-            rnd.setSeed(System.nanoTime());
-            Algorithm alg = new Algorithm(value.toString(), this);
             this.cont = context;
+            /*
+            context.write(new Text(Integer.toString(Algorithm.sizePopulation)),
+                    new Text(Integer.toString(Algorithm.limit)));
+*/
+            Algorithm alg = new Algorithm(value.toString(), this);
             Set<Rule> finalRules = alg.run();
             
             for(Rule r : finalRules)

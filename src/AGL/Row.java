@@ -143,7 +143,8 @@ public abstract class Row
     {
         int zeros = 0;
         
-        for (int i = 0; i < this.row.length-1; i++) zeros += row[i].getNumZeros();
+        for (int i = 0; i < this.row.length-1; i++)
+            zeros += row[i].getNumZeros();
         
         return zeros;
     }
