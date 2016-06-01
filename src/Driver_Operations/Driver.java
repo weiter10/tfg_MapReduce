@@ -17,8 +17,6 @@ import Hdfs_Operations.HdfsWriter;
 import Hive_JDBC_Operations.DataBase;
 import Job_GlobalEvaluation.GlobalEvaluation;
 import Parse.ParseFileFromLocal;
-import Job_Training.MapTraining;
-import Job_Training.ReduceTraining;
 import Local_Storage_Operations.LocalStorageWrite;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
