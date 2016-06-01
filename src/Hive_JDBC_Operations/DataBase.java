@@ -6,6 +6,8 @@
 package Hive_JDBC_Operations;
 
 import Driver_Operations.Driver;
+import static Driver_Operations.Driver.pathFolderTraining;
+import Hdfs_Operations.HdfsWriter;
 import Parse.ParseFileFromLocal;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.hadoop.util.ToolRunner;
 
 /**
  *
@@ -196,15 +199,13 @@ public abstract class DataBase
      * El fin de las reglas se delimita por dos tabulaciones "\t\t"
      * @param sourceTestSetPos
      * @param sourceTestSetNeg
-     * @param sourceRules
      * @param testFold
      * @param numBits
-     * @param bw
      * @throws IOException 
      */
     public static void writeTestSet(String sourceTestSetPos, String sourceTestSetNeg,
-            String sourceRules, int testFold, int[] numBits, BufferedWriter bw)
-            throws IOException
+            int testFold, int[] numBits)
+            throws IOException, Exception
     {
         try
         {
@@ -216,7 +217,7 @@ public abstract class DataBase
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             String data = "", binaryValue;
-            int limit = Driver.limit;
+            int limit = Driver.limit, count = 0;
             
             while(rs.next())
             {
@@ -224,7 +225,6 @@ public abstract class DataBase
                 for (int i = 1; i < columnsNumber; i++)
                 {
                     binaryValue = ParseFileFromLocal.createBinaryValue(numBits[i-1], rs.getInt(i));
-                        
                     data += binaryValue + ",";
                 }
                 
@@ -232,17 +232,20 @@ public abstract class DataBase
                 
                 if(data.length() > limit)
                 {
+                    //Obtenemos el buffer de escritura en HDFS
+                    ToolRunner.run(new HdfsWriter(), new String[] {Driver.pathFolderTestFile + "/" + count});
+                    BufferedWriter bw = HdfsWriter.bw;
+                    count++;
+                    
                     //Escribimos la clase minoritaria
-                    bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+                    bw.write(ParseFileFromLocal.getBinaryPosClass()+ "\t\t");
                     //Escribimos la clase mayoritaria
-                    bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
-                    //Escribimos las reglas
-                    DataBase.writeOrderedRulesInFile(sourceRules, bw);
-                    bw.write("\t");
+                    bw.write(ParseFileFromLocal.getBinaryNegClass()+ "\t\t");
                     //Escribimos los ejemplos
                     bw.write(data);
                     bw.write("\n");
                     data = "";
+                    bw.close();
                 }
             }
             
@@ -264,31 +267,35 @@ public abstract class DataBase
                 
                 if(data.length() > limit)
                 {
+                    //Obtenemos el buffer de escritura en HDFS
+                    ToolRunner.run(new HdfsWriter(), new String[] {Driver.pathFolderTestFile + "/" + count});
+                    BufferedWriter bw = HdfsWriter.bw;
+                    count++;
+                    
                     //Escribimos la clase minoritaria
-                    bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+                    bw.write(ParseFileFromLocal.getBinaryPosClass() + "\t\t");
                     //Escribimos la clase mayoritaria
-                    bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
-                    //Escribimos las reglas
-                    DataBase.writeOrderedRulesInFile(sourceRules, bw);
-                    bw.write("\t");
+                    bw.write(ParseFileFromLocal.getBinaryNegClass()+ "\t\t");
                     //Escribimos los ejemplos
                     bw.write(data);
                     bw.write("\n");
                     data = "";
+                    bw.close();
                 }
             }
             
+            //Obtenemos el buffer de escritura en HDFS
+            ToolRunner.run(new HdfsWriter(), new String[] {Driver.pathFolderTestFile + "/" + count});
+            BufferedWriter bw = HdfsWriter.bw;
+
             //Escribimos la clase minoritaria
-            bw.write(ParseFileFromLocal.getBinaryMinorClass() + "\t\t");
+            bw.write(ParseFileFromLocal.getBinaryPosClass() + "\t\t");
             //Escribimos la clase mayoritaria
-            bw.write(ParseFileFromLocal.getBinaryMajorityClass()+ "\t\t");
-            //Escribimos las reglas
-            DataBase.writeOrderedRulesInFile(sourceRules, bw);
-            bw.write("\t");
+            bw.write(ParseFileFromLocal.getBinaryNegClass()+ "\t\t");
             //Escribimos los ejemplos
             bw.write(data);
             bw.write("\n");
-            
+            bw.close();
             con.close();
             
         } catch (SQLException ex)
@@ -489,7 +496,8 @@ public abstract class DataBase
     
     
     /**
-     * Escribe en el fichero las reglas almacenadas en la tabla.
+     * Escribe en el fichero las reglas almacenadas en la tabla. Las reglas se escriben
+     * en una linea y separadas por tabulaciones
      * @param tableName
      * @param bw
      * @throws IOException 
@@ -636,4 +644,134 @@ public abstract class DataBase
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    
+    /**
+     * 
+     * @param tablePos
+     * @param tableNeg
+     * @param fileName
+     * @param numBits
+     * @throws IOException 
+     */
+    
+    public static void writeBalancedDataBinaryFormat(String tablePos, 
+            String tableNeg, String fileName, int[] numBits) throws IOException, Exception
+    {
+        try
+        {
+            Connection con = HiveConnect.getConnection();
+            Statement stmt1 = con.createStatement(), stmt2 = con.createStatement();
+            ResultSet[] rs = new ResultSet[2];
+            rs[0] = stmt1.executeQuery("SELECT * FROM " + tablePos);
+            rs[1] = stmt2.executeQuery("SELECT * FROM " + tableNeg);
+            ResultSetMetaData rsmd = rs[0].getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+            long sizePos = DataBase.getNumRows(tablePos);
+            long sizeNeg = DataBase.getNumRows(tableNeg);
+            String data = "", binaryValue;
+            int countFiles = 0, indexSmall, indexBig;
+            
+            if(sizePos > sizeNeg)
+            {
+                indexBig = 0;
+                indexSmall = 1;
+            }
+            else
+            {
+                indexBig = 1;
+                indexSmall = 0;
+            }
+
+            while(rs[indexSmall].next())
+            {
+                rs[indexBig].next();
+
+                for (ResultSet rs1 : rs)
+                {
+                    //El id lo dejamos fuera
+                    for (int j = 1; j < columnsNumber; j++)
+                    {
+                        binaryValue = ParseFileFromLocal.createBinaryValue(numBits[j-1], rs1.getInt(j));
+
+                        data += binaryValue + ",";
+                    }
+
+                    data += "\t";
+                }
+
+                if(data.length() > Driver.limit)
+                {
+                    //Obtenemos el buffer de escritura en HDFS
+                    ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
+                    BufferedWriter bw = HdfsWriter.bw;
+                    countFiles++;
+
+                    //Escribimos la semilla aleatoria y el IR
+                    bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t");
+                    bw.write(data);
+                    Driver.countSeedRnd++;
+                    bw.close();
+                    data = "";
+                }
+            }
+
+            if(indexSmall == 1)
+                rs[indexSmall] = stmt2.executeQuery("SELECT * FROM " + tableNeg);
+            
+            else
+                rs[indexSmall] = stmt1.executeQuery("SELECT * FROM " + tablePos);
+
+            while(rs[indexBig].next())
+            {
+                rs[indexSmall].next();
+
+                for (ResultSet rs1 : rs)
+                {
+                    //El id lo dejamos fuera
+                    for (int j = 1; j < columnsNumber; j++)
+                    {
+                        binaryValue = ParseFileFromLocal.createBinaryValue(numBits[j-1], rs1.getInt(j));
+
+                        data += binaryValue + ",";
+                    }
+
+                    data += "\t";
+                }
+
+                if(data.length() > Driver.limit)
+                {
+                    //Obtenemos el buffer de escritura en HDFS
+                    ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
+                    BufferedWriter bw = HdfsWriter.bw;
+                    countFiles++;
+
+                    //Escribimos la semilla aleatoria y el IR
+                    bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t");
+                    bw.write(data);
+                    Driver.countSeedRnd++;
+                    bw.close();
+                    data = "";
+                }
+            }
+
+            //Obtenemos el buffer de escritura en HDFS
+            ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
+            BufferedWriter bw = HdfsWriter.bw;
+            countFiles++;
+
+            //Escribimos la semilla aleatoria y el IR
+            bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t");
+            bw.write(data);
+            Driver.countSeedRnd++;
+            bw.close();
+            
+            con.close();
+            
+        } catch (SQLException ex)
+        {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
 }

@@ -5,6 +5,8 @@
  */
 package Job_Test;
 
+import Driver_Operations.Driver;
+import Hdfs_Operations.HdfsReader;
 import TestFase.Example;
 import TestFase.Parse;
 import TestFase.Rule;
@@ -51,6 +53,10 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
     {
         try
         {
+            //Obtenemos el buffer de lectura en HDFS para leer las reglas
+            ToolRunner.run(new HdfsReader(), new String[] {"/input/" + Driver.nameOrderedRulesFile});
+            BufferedReader br = HdfsReader.br;
+            
             int result, index;
             Map<String, Integer> indexConfusionMatrix = new HashMap();
             long[][] confusionMatrix = new long[2][2];
@@ -58,7 +64,7 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
             String minorClass = data[0], majorityClass = data[1], 
                     defaultClass = data[1], exClass;
             //Cargamos las reglas
-            ArrayList<Rule> rules = Parse.parseRules(data[2]);
+            ArrayList<Rule> rules = Parse.parseRules(br.readLine());
             Example ex;
             long start = System.currentTimeMillis(), elapsedTimeMillis;
             
@@ -72,7 +78,7 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
             Columna: dada por el ejemplo(real)
             */
             
-            for(String exampleStr : data[3].split("\t"))
+            for(String exampleStr : data[2].split("\t"))
             {
                 elapsedTimeMillis = System.currentTimeMillis()-start;
                 //Si ha pasado mas de 400s informamos al context que seguimos trabajando

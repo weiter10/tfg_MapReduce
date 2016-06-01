@@ -28,25 +28,27 @@ public abstract class ParseFileFromLocal
 {
     private static Map<String,Integer>[] inside;//From String to Int, un Map por columna del Dataset
     private static Map<Integer,String>[] outside;//From Int to String, un Map por columna del Dataset
-    private static String minorClass;
+    private static String positiveClass;
     
     
-    public static void parse(String fileName, String minorClass, int classColNum)
-            throws FileNotFoundException, IOException
+    public static void parse(String fileName, String posClass, int classColNum,
+            String splitBy) throws FileNotFoundException, IOException
     {
         File archivo = new File(fileName);
         FileReader fr = new FileReader (archivo);
         BufferedReader br = new BufferedReader(fr);
-        String line, cvsSplitBy = ",", insertTmp, insertPositives = "",
+        String line, insertTmp, insertPositives = "",
                 insertNegatives = "";
         String[] lineSplit;
         int numCol, numAtr, limit = Driver.limit, foldPositive = 1,
                 foldNegative = 1;
-        ParseFileFromLocal.minorClass = minorClass;
+        ParseFileFromLocal.positiveClass = posClass;
+        classColNum--;
+        long numPosClass = 0, numNegClass = 0;
 
         //Leemos una linea del fichero para poder crear las dos tablas
         line = br.readLine();
-        lineSplit = line.split(cvsSplitBy);
+        lineSplit = line.split(splitBy);
         numAtr = lineSplit.length;
         numCol = numAtr+1;
         Driver.numAttributes = numAtr;
@@ -71,30 +73,49 @@ public abstract class ParseFileFromLocal
         //negativo
         insertTmp = "(";
         
-        for (int i = 0; i < numAtr; i++)
+        for (int i = 0, indexMap = 0; i < numAtr; i++, indexMap++)
         {
-            //Si el valor es nuevo, se añade a las tablas hash para su traducción
-            //a int
-            if(!inside[i].containsKey(lineSplit[i]))
+            if(i != classColNum)
             {
-                inside[i].put(lineSplit[i], inside[i].size()+1);
-                outside[i].put(outside[i].size()+1, lineSplit[i]);
+                //Si el valor es nuevo, se añade a las tablas hash para su traducción
+                //a int
+                if(!inside[indexMap].containsKey(lineSplit[i]))
+                {
+                    inside[indexMap].put(lineSplit[i], inside[indexMap].size()+1);
+                    outside[indexMap].put(outside[indexMap].size()+1, lineSplit[i]);
+                }
+
+                insertTmp += inside[indexMap].get(lineSplit[i]) + ",";
             }
-            
-            insertTmp += inside[i].get(lineSplit[i]) + ",";
+            else
+            {
+                //Si el valor es nuevo, se añade a las tablas hash para su traducción
+                //a int
+                if(!inside[numAtr-1].containsKey(lineSplit[i]))
+                {
+                    inside[numAtr-1].put(lineSplit[i], inside[numAtr-1].size()+1);
+                    outside[numAtr-1].put(outside[numAtr-1].size()+1, lineSplit[i]);
+                }
+                
+                indexMap--;
+            }
         }
         
-        if(minorClass.equals(lineSplit[numAtr-1]))
+        insertTmp += inside[numAtr-1].get(lineSplit[classColNum]) + ",";
+        
+        if(posClass.equals(lineSplit[classColNum]))
         {
             insertTmp += foldPositive + ")";
             foldPositive++;
             insertPositives += insertTmp;
+            numPosClass++;
         }
         else
         {
             insertTmp += foldNegative + ")";
             foldNegative++;
             insertNegatives += insertTmp;
+            numNegClass++;
         }
         //--
         
@@ -102,22 +123,40 @@ public abstract class ParseFileFromLocal
         //Introducimos el dataset en el data warehouse
         while((line = br.readLine()) != null)
         {
-            lineSplit = line.split(cvsSplitBy);
+            lineSplit = line.split(splitBy);
             insertTmp = "(";
 
-            for (int i = 0; i < numAtr; i++)
+            for (int i = 0, indexMap = 0; i < numAtr; i++, indexMap++)
             {
-                //Si el valor es nuevo, se añade a las tablas hash para su traducción
-                if(!inside[i].containsKey(lineSplit[i]))
+                if(i != classColNum)
                 {
-                    inside[i].put(lineSplit[i], inside[i].size()+1);
-                    outside[i].put(outside[i].size()+1, lineSplit[i]);
-                }
+                    //Si el valor es nuevo, se añade a las tablas hash para su traducción
+                    //a int
+                    if(!inside[indexMap].containsKey(lineSplit[i]))
+                    {
+                        inside[indexMap].put(lineSplit[i], inside[indexMap].size()+1);
+                        outside[indexMap].put(outside[indexMap].size()+1, lineSplit[i]);
+                    }
 
-                insertTmp += inside[i].get(lineSplit[i]) + ",";
+                    insertTmp += inside[indexMap].get(lineSplit[i]) + ",";
+                }
+                else
+                {
+                    //Si el valor es nuevo, se añade a las tablas hash para su traducción
+                    //a int
+                    if(!inside[numAtr-1].containsKey(lineSplit[i]))
+                    {
+                        inside[numAtr-1].put(lineSplit[i], inside[numAtr-1].size()+1);
+                        outside[numAtr-1].put(outside[numAtr-1].size()+1, lineSplit[i]);
+                    }
+
+                    indexMap--;
+                }
             }
 
-            if(minorClass.equals(lineSplit[numAtr-1]))
+            insertTmp += inside[numAtr-1].get(lineSplit[classColNum]) + ",";
+
+            if(posClass.equals(lineSplit[classColNum]))
             {
                 insertTmp += foldPositive + ")";
                 foldPositive++;
@@ -133,6 +172,8 @@ public abstract class ParseFileFromLocal
                     DataBase.insert(Driver.nameBigTablePos, insertPositives);
                     insertPositives = "";
                 }
+                
+                numPosClass++;
             }
             else
             {
@@ -150,10 +191,15 @@ public abstract class ParseFileFromLocal
                     DataBase.insert(Driver.nameBigTableNeg, insertNegatives);
                     insertNegatives = "";
                 }
+                
+                numNegClass++;
             }
             //--
         }
         //--
+        
+        //String pos = ParseFileFromLocal.getBinaryPosClass();
+        //String neg = ParseFileFromLocal.getBinaryNegClass();
         
         System.out.println("$$$$$$$$$$$$$$$$$$$$$$$-> Final insert...");
         
@@ -212,7 +258,7 @@ public abstract class ParseFileFromLocal
     }
     
     
-    public static String getBinaryMinorClass()
+    public static String getBinaryPosClass()
     {
         int[] tabNumBits = ParseFileFromLocal.getNumBits();
         int size = tabNumBits.length-1;
@@ -220,17 +266,17 @@ public abstract class ParseFileFromLocal
         
         return ParseFileFromLocal.createBinaryValue(numBits, 
                 ParseFileFromLocal.inside[size]
-                        .get(ParseFileFromLocal.minorClass));
+                        .get(ParseFileFromLocal.positiveClass));
     }
     
     
-    public static String getBinaryMajorityClass()
+    public static String getBinaryNegClass()
     {
         int[] tabNumBits = ParseFileFromLocal.getNumBits();
         int size = tabNumBits.length-1;
         int numBits = tabNumBits[size];//El atributo de clase es el último
         Set<String> s = new HashSet(ParseFileFromLocal.inside[size].keySet());
-        s.remove(ParseFileFromLocal.minorClass);
+        s.remove(ParseFileFromLocal.positiveClass);
         String majorityClass = s.iterator().next();
         
         return ParseFileFromLocal.createBinaryValue(numBits, 

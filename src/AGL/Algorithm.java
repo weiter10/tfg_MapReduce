@@ -29,6 +29,7 @@ public class Algorithm
     private final Random rnd;
     private final Set<Rule> finalRules;
     public MapTraining job;
+    private final int sizeTournament = sizePopulation/10;
     
     
     public Algorithm(String dataString, MapTraining job) throws FileNotFoundException, IOException
@@ -83,7 +84,7 @@ public class Algorithm
                 if(sR.size() != numVoters)
                 {
                     vF++;
-                    System.out.println("Resultado del US: " + sR.size() + " en lugar de " + numVoters);
+                    //System.out.println("Resultado del US: " + sR.size() + " en lugar de " + numVoters);
                 }
                 
                 else vG++;
@@ -97,8 +98,9 @@ public class Algorithm
                         rules = this.crossing(coupleParents[0], coupleParents[1]);
 
                         //Aplicamos la mutación
-                        for (Rule rule : rules) this.mutate(rule);
-
+                        for (Rule rule : rules)
+                            this.mutate(rule);
+                        
                         //Añadimos los padres y los hijos, ordenandolos 
                         for (int i = 0; i < 2; i++)
                         {
@@ -113,14 +115,17 @@ public class Algorithm
                             //todo "0" o todo "1"
                             if(rules[i].validChromosome()) orderedByEF.add(rules[i]);
                         }
-
+                        
+                        //Quitamos los elementos repetidos
                         sR = new HashSet(orderedByEF);
+                        
                         if(sR.size() != 4)
                         {
-                            System.out.println("Resultado de la reproduccion: " + sR.size() + 
-                                    " en lugar de 4 con " + validExamples.size() + " ejemplos validos");
+                            //System.out.println("Resultado de la reproduccion: " + sR.size() + 
+                                    //" en lugar de 4 con " + validExamples.size() + " ejemplos validos");
                             countFail++;
                         }
+                        
                         else countGood++;
 
                         //Añadimos los dos mejores
@@ -135,25 +140,24 @@ public class Algorithm
                         }
 
                         orderedByEF.clear();
-
-                        actualMeanEvaluation = this.getMeanEvaluationFunction();
-
-                        //Si la media de la función de evaluación de la población ha
-                        //mejorado
-                        if(actualMeanEvaluation > lastMeanEvaluation)
-                        {
-                            lastMeanEvaluation = actualMeanEvaluation;
-                            numIterationsWithOutImprove = 0;
-                        }
-
-                        else numIterationsWithOutImprove++;
                     }
                 }
                 
-                //TODO poner una política en condiciones para reducir la población
                 //si aumenta del máximo
-                while(this.population.size() > this.sizePopulation)
-                    this.population.remove(this.population.iterator().next());
+                while(this.population.size() > sizePopulation)
+                    this.tournament();
+                
+                actualMeanEvaluation = this.getMeanEvaluationFunction();
+                
+                //Si la media de la función de evaluación de la población ha
+                //mejorado
+                if(actualMeanEvaluation > lastMeanEvaluation)
+                {
+                    lastMeanEvaluation = actualMeanEvaluation;
+                    numIterationsWithOutImprove = 0;
+                }
+
+                else numIterationsWithOutImprove++;
             }
             //Reducción de ejemplos, implica reevaluar todas las reglas de la
             //población
@@ -188,7 +192,7 @@ public class Algorithm
             }
             
             //Error si el tamaño de la población es distinto que el configurado
-            if(this.population.size() != this.sizePopulation)
+            if(this.population.size() != sizePopulation)
             {
                 System.err.println("Size: " + this.population.size());
             }
@@ -207,12 +211,36 @@ public class Algorithm
         for(Rule r : this.finalRules) r.updatePerformance();
         
         
-        System.out.println("countFail: " + countFail);
-        System.out.println("countGood: " + countGood);
-        System.out.println("votersFail: " + vF);
-        System.out.println("votersGood: " + vG);
+        //System.out.println("countFail: " + countFail);
+        //System.out.println("countGood: " + countGood);
+        //System.out.println("votersFail: " + vF);
+        //System.out.println("votersGood: " + vG);
         
         return this.finalRules;
+    }
+    
+    /**
+     * Elimina una regla de la población por torneo
+     */
+    private void tournament()
+    {
+        ArrayList<Rule> ar = new ArrayList(this.population);
+        Set<Integer> set = new HashSet();
+        PriorityQueue<Rule> ruleOrder = new PriorityQueue();//Ordenamos las reglas de menor bondad a mayor;
+        
+        for (int i = 0; i < this.sizeTournament; i++)
+        {
+            int size = set.size();
+            set.add(rnd.nextInt(ar.size()));
+            
+            while(set.size() == size)
+                set.add(rnd.nextInt(ar.size()));
+        }
+        
+        for(int index : set)
+            ruleOrder.add(ar.get(index));
+        
+        this.population.remove(ruleOrder.peek());
     }
 
     
