@@ -35,7 +35,7 @@ public final class Parse
     private final Attribute minorClass;
     
     private final float iR;
-    private final int seedRandomNumbers;
+    private final int seedRandomNumbers, sizePopulation, limit;
 
     public Set<Integer> getValidExamples()
     {
@@ -55,6 +55,14 @@ public final class Parse
     public int getSeedRandomNumbers() {
         return seedRandomNumbers;
     }
+
+    public int getSizePopulation() {
+        return sizePopulation;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
     
     public Parse(String dataString, MapTraining job) throws FileNotFoundException, IOException
     {
@@ -67,7 +75,9 @@ public final class Parse
         dataBulk = dataString.split("\t\t");
         seedRandomNumbers = Integer.parseInt(dataBulk[0]);
         iR = Float.parseFloat(dataBulk[1]);
-        examples = dataBulk[2].split("\t");
+        this.sizePopulation = Integer.parseInt(dataBulk[2]);
+        this.limit = Integer.parseInt(dataBulk[3]);
+        examples = dataBulk[4].split("\t");
         long start = System.currentTimeMillis(), elapsedTimeMillis;
         
         //Construimos el dataset

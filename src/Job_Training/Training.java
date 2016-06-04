@@ -64,13 +64,6 @@ public class Training extends Configured implements Tool
         String[] args2 = new String[2];
         String nameFileOutputMR = "/output/part-r-00000", str = "";
         int i = 1;
-        
-        //Inicializamos las variables
-        Algorithm.sizePopulation = Integer.parseInt(args[6]);
-        Algorithm.limit = Integer.parseInt(args[7]);
-        
-        System.out.println("Poblacion: " + Algorithm.sizePopulation);
-        System.out.println("Limite: " + Algorithm.limit);
 
         //Borramos el directorio de salida de trabajos MapReduce
         args2[0] = "/output";

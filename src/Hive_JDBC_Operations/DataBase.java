@@ -216,7 +216,7 @@ public abstract class DataBase
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             String data = "", binaryValue;
-            int limit = Driver.limit, count = 0;
+            int limit = Driver.maxSizeStr, count = 0;
             
             while(rs.next())
             {
@@ -476,7 +476,7 @@ public abstract class DataBase
             {
                 data += rs.getString(1) + "\t";
                 
-                if(data.length() > Driver.limit)
+                if(data.length() > Driver.maxSizeStr)
                 {
                     bw.write(data);
                     data = "";
@@ -515,7 +515,7 @@ public abstract class DataBase
             {
                 data += rs.getString(1) + "\t";
                 
-                if(data.length() > Driver.limit)
+                if(data.length() > Driver.maxSizeStr)
                 {
                     bw.write(data);
                     data = "";
@@ -614,7 +614,7 @@ public abstract class DataBase
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
             String data = "", binaryValue;
-            int limit = Driver.limit;
+            int limit = Driver.maxSizeStr;
             
             while(rs.next())
             {
@@ -699,7 +699,7 @@ public abstract class DataBase
                     data += "\t";
                 }
 
-                if(data.length() > Driver.limit)
+                if(data.length() > Driver.maxSizeStr)
                 {
                     //Obtenemos el buffer de escritura en HDFS
                     ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
@@ -707,7 +707,8 @@ public abstract class DataBase
                     countFiles++;
 
                     //Escribimos la semilla aleatoria y el IR
-                    bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t");
+                    bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t" +
+                    Driver.algorithmSizeP + "\t\t" + Driver.algorithmIter + "\t\t");
                     bw.write(data);
                     Driver.countSeedRnd++;
                     bw.close();
@@ -738,7 +739,7 @@ public abstract class DataBase
                     data += "\t";
                 }
 
-                if(data.length() > Driver.limit)
+                if(data.length() > Driver.maxSizeStr)
                 {
                     //Obtenemos el buffer de escritura en HDFS
                     ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
@@ -746,24 +747,29 @@ public abstract class DataBase
                     countFiles++;
 
                     //Escribimos la semilla aleatoria y el IR
-                    bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t");
+                    bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t" +
+                    Driver.algorithmSizeP + "\t\t" + Driver.algorithmIter + "\t\t");
                     bw.write(data);
                     Driver.countSeedRnd++;
                     bw.close();
                     data = "";
                 }
             }
+            
+            if(!data.equals(""))
+            {
+                //Obtenemos el buffer de escritura en HDFS
+                ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
+                BufferedWriter bw = HdfsWriter.bw;
+                countFiles++;
 
-            //Obtenemos el buffer de escritura en HDFS
-            ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
-            BufferedWriter bw = HdfsWriter.bw;
-            countFiles++;
-
-            //Escribimos la semilla aleatoria y el IR
-            bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t");
-            bw.write(data);
-            Driver.countSeedRnd++;
-            bw.close();
+                //Escribimos la semilla aleatoria y el IR
+                bw.write(Driver.countSeedRnd + "\t\t" + 1 + "\t\t" +
+                        Driver.algorithmSizeP + "\t\t" + Driver.algorithmIter + "\t\t");
+                bw.write(data);
+                Driver.countSeedRnd++;
+                bw.close();
+            }
             
             con.close();
             

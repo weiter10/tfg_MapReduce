@@ -23,19 +23,22 @@ import java.util.Set;
  */
 public class Algorithm
 {
-    public static int sizePopulation = 35, limit = 50000;
+    private final int sizePopulation, limit;
     private final Parse dataset;
     private Set<Rule> population;
     private final Random rnd;
     private final Set<Rule> finalRules;
-    public MapTraining job = null;
-    private final int sizeTournament = sizePopulation/10;
+    private MapTraining job = null;
+    private final int sizeTournament;
     
     
     public Algorithm(String dataString, MapTraining job) throws FileNotFoundException, IOException
     {
         this.job = job;
         dataset = new Parse(dataString, job);
+        sizePopulation = dataset.getSizePopulation();
+        sizeTournament = sizePopulation/10;
+        limit = dataset.getLimit();
         this.rnd = new Random();
         this.rnd.setSeed(dataset.getSeedRandomNumbers());
         this.finalRules = new HashSet();
@@ -74,7 +77,7 @@ public class Algorithm
             //Error si el tamaño de la población es distinto que el configurado
             if(this.population.size() != sizePopulation)
             {
-                System.err.println("Size: " + this.population.size());
+                System.out.println("Size: " + this.population.size());
             }
             
             elapsedTimeMillis = System.currentTimeMillis()-start;

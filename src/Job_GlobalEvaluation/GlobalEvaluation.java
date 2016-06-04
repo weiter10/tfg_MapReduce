@@ -64,14 +64,6 @@ public class GlobalEvaluation extends Configured implements Tool {
         String nameFileOutputMR = "/output/part-r-00000", str = "";
         int i = 1;
 
-        if (args.length < 4)
-        {
-            System.err.println("Number of arguments incorrect");
-            System.err.println("Local_dataset_name Name_positive_class Num_colum_positive_class"
-                    + "File_output_name");
-            System.exit(1);
-        }
-
         //Borramos el directorio de salida de trabajos MapReduce
         args2[0] = "/output";
         args2[1] = "";
@@ -84,7 +76,7 @@ public class GlobalEvaluation extends Configured implements Tool {
 
         //Escribimos el resultado en el almacenamiento local
         args2[0] = nameFileOutputMR;
-        args2[1] = args[3] + "/GlobalEvaluation_" + i;
+        args2[1] = args[4] + "/GlobalEvaluationOutput_" + i;
         ToolRunner.run(new HdfsReaderToLocal(), args2);
     }
 }

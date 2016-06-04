@@ -17,6 +17,8 @@ public class InfoRule
     private int positives, negatives, count, numZeros, sizeChromosome;
     private double pi;
     
+    public static boolean weighted = false;
+    
     
     public InfoRule(String cl, String rule)
     {
@@ -24,14 +26,18 @@ public class InfoRule
         this.positives = 0;
         this.negatives = 0;
         this.numZeros = 0;
-        this.sizeChromosome = rule.length();
         count = 0;
         pi = 0;
         char[] pal = rule.toCharArray();
         
         for(char c : pal)
+        {
             if(c == '0')
                 this.numZeros++;
+            
+            if(c != ',')
+                sizeChromosome++;
+        }
     }
     
     public void addPositives(int p)
@@ -73,6 +79,10 @@ public class InfoRule
     {
         double valueD = 1 + ((double)this.numZeros/sizeChromosome);
         double evaluationFunction = Math.pow(valueD, -negatives);
-        pi = positives*evaluationFunction*count;
+        
+        if(weighted)
+            pi = positives*evaluationFunction*count;
+        else
+            pi = positives*evaluationFunction;
     }
 }

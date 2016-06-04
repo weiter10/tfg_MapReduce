@@ -267,7 +267,8 @@ public final class Rule extends Row implements Comparable
     {
         String result = "";
         
-        for(int i = 0; i < row.length-1; i++) result += row[i].toString() + ",";
+        for(int i = 0; i < row.length-1; i++)
+            result += row[i].toString() + ",";
         
         return result;
     }

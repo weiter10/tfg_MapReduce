@@ -40,7 +40,7 @@ public abstract class ParseFileFromLocal
         String line, insertTmp, insertPositives = "",
                 insertNegatives = "";
         String[] lineSplit;
-        int numCol, numAtr, limit = Driver.limit, foldPositive = 1,
+        int numCol, numAtr, limit = Driver.maxSizeStr, foldPositive = 1,
                 foldNegative = 1;
         ParseFileFromLocal.positiveClass = posClass;
         classColNum--;

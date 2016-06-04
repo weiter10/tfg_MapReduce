@@ -41,7 +41,8 @@ public class ReduceTraining extends Reducer<Text, Text, Text, Text>
                 {
                     String[] param = value.toString().split("\t");
 
-                    if(!infoMap.containsKey(param[0])) infoMap.put(param[0], new InfoRule(param[0], key.toString()));
+                    if(!infoMap.containsKey(param[0]))
+                        infoMap.put(param[0], new InfoRule(param[0], key.toString()));
 
                     InfoRule ir = infoMap.get(param[0]);
                     ir.addPositives(Integer.parseInt(param[1]));
@@ -51,7 +52,8 @@ public class ReduceTraining extends Reducer<Text, Text, Text, Text>
 
                 ArrayList<InfoRule> info = new ArrayList(infoMap.values());
 
-                for(InfoRule in : info) in.calculatePi();
+                for(InfoRule in : info)
+                    in.calculatePi();
 
                 if(info.size() > 1)
                 {

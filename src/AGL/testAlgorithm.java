@@ -71,10 +71,7 @@ public class testAlgorithm
         FileReader fr = new FileReader (archivo);
         BufferedReader br = new BufferedReader(fr);
         
-        Algorithm.sizePopulation = 35;
-        Algorithm.limit = 50000;
-        /*
-        Algorithm alg = new Algorithm(br.readLine());
+        Algorithm alg = new Algorithm(br.readLine(), null);
         PriorityQueue<Rule> p = new PriorityQueue();
         p.addAll(alg.run());
         
@@ -84,7 +81,7 @@ public class testAlgorithm
             System.out.println(p.poll().show());
         
         System.out.println("Number of rules: " + size);
-        */
+        
         
         int nada = 0;
     }
