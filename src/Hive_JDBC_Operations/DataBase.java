@@ -129,7 +129,7 @@ public abstract class DataBase
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
             String query, insertTmp, insert = null;
-            int limit = Integer.MAX_VALUE/2;
+            int limit = Driver.maxSizeStr;
             long count = 1;
             
             query = "SELECT " + atr.substring(1) + " FROM " + source + " WHERE";
@@ -191,6 +191,7 @@ public abstract class DataBase
             Logger.getLogger(Driver.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
     
     /**
      * Escribe en el fichero: las reglas y el testSet. Por cada GB
@@ -455,6 +456,7 @@ public abstract class DataBase
             Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
     
     /**
      * Escribe en el fichero las reglas almacenadas en la tabla.

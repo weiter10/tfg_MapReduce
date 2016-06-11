@@ -56,7 +56,7 @@ public class MapGlobalEvaluation extends Mapper<LongWritable, Text, Text, Text>
             Set<Example> examples = parse.getExamples(), coveredPositives;
             PriorityQueue<Rule> orderedRules = new PriorityQueue(Collections.reverseOrder());
             
-            while(!examples.isEmpty())
+            while(!examples.isEmpty() && !orderedRules.isEmpty())
             {
                 orderedRules.addAll(rules);
                 best = orderedRules.peek();

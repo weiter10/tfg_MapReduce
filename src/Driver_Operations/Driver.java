@@ -17,6 +17,7 @@ import Hdfs_Operations.HdfsWriter;
 import Hive_JDBC_Operations.DataBase;
 import Job_GlobalEvaluation.GlobalEvaluation;
 import Job_Training.InfoRule;
+import Local_Storage_Operations.LocalStorageCreateFolder;
 import Parse.ParseFileFromLocal;
 import Local_Storage_Operations.LocalStorageWrite;
 import java.io.BufferedReader;
@@ -63,14 +64,18 @@ public class Driver
             pathFolderTestFile = "/input/testFiles",
             pathFolderOutputMR = "/output";
     
-    public static int numAttributes, maxSizeStr = Integer.MAX_VALUE/4, countSeedRnd = 0,
+    public static int numAttributes, maxSizeStr = Integer.MAX_VALUE/4, 
             algorithmIter, algorithmSizeP;
+    
+    public static long countSeedRnd;
     
     public static void main(String[] args) throws Exception
     {
         String[] args2 = new String[2];
-        String nameFileOutputMR = pathFolderOutputMR + "/part-r-00000", str;
+        String nameFileOutputMR = pathFolderOutputMR + "/part-r-00000", str,
+                outputFolder;
         int numFolds = 5;//MAX 5
+        long[] numRules = new long[numFolds];
         double[] accuracy = new double[numFolds];
         double meanAccuracy = 0;
         long initTime, finishTime;
@@ -78,12 +83,13 @@ public class Driver
         for (int i = 0; i < numFolds; i++)
             accuracy[i] = 0;
         
-        if(args.length < 9)
+        if(args.length < 10)
         {
             System.err.println("Number of arguments incorrect");
             System.err.println("Local_dataset Name_positive_class Num_colum_positive_class"
                     + " Separator File_output_name Balanced(true/false) SizePopullaion "
-                    + "numIterationsWithOutImprove GlobalEvaluation(true/false)");
+                    + "numIterationsWithOutImprove GlobalEvaluation(true/false) "
+                    + "Seed");
             System.exit(1);
         }
         
@@ -91,9 +97,16 @@ public class Driver
         algorithmSizeP = Integer.parseInt(args[6]);
         algorithmIter = Integer.parseInt(args[7]);
         
+        //Inicializamos la semilla
+        countSeedRnd = Long.parseLong(args[9]);
+        
+        //Construimos el directorio de salida
+        outputFolder = args[4] + "/" + Long.toString(System.currentTimeMillis());
+        LocalStorageCreateFolder.run(outputFolder);
+        
         initTime = System.currentTimeMillis();
         
-        //Introducimos el fichero en el data warehouse
+        //Creamos el data warehouse a partir del dataset de entrada
         ParseFileFromLocal.parse(args[0], args[1], Integer.parseInt(args[2]), args[3]);
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Data warehouse OK");
         //--
@@ -138,7 +151,7 @@ public class Driver
             
             //Escribimos el resultado en el almacenamiento local
             args2[0] = nameFileOutputMR;
-            args2[1] = args[4] + "/Training_" + i;
+            args2[1] = outputFolder + "/Training_" + i;
             ToolRunner.run(new HdfsReaderToLocal(), args2);
             
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
@@ -146,6 +159,7 @@ public class Driver
             //args2[1] =  args[4] + "/" + Driver.nameTrainingSetFile + "_" + i;
             //ToolRunner.run(new HdfsReaderToLocal(), args2);
             
+            //Evaluacion global
             if(args[8].equals("true"))
             {
                 //Creamos el fichero de entrada para la evaluación global
@@ -153,11 +167,12 @@ public class Driver
                 Driver.generateGlobalEvatuationFile(nameFileOutputMR);
                 System.out.println("$$$$$$$$$$$$$$$$$$$$$-> GlobalEvaluation file in HDFS OK");
 
+                
                 //Escribimos el fichero de entrada de la evaluación global en el
                 //almacenamiento local
-                args2[0] = "/input/" + Driver.nameGlobalEvaluationFile;
-                args2[1] = args[4] + "/GlobalEvaluationInput_" + i;
-                ToolRunner.run(new HdfsReaderToLocal(), args2);
+                //args2[0] = "/input/" + Driver.nameGlobalEvaluationFile;
+                //args2[1] = outputFolder + "/GlobalEvaluationInput_" + i;
+                //ToolRunner.run(new HdfsReaderToLocal(), args2);
 
                 //Borramos el directorio de salida de trabajos MapReduce
                 args2[0] = pathFolderOutputMR;
@@ -171,9 +186,9 @@ public class Driver
 
                 //Escribimos el resultado en el almacenamiento local
                 args2[0] = nameFileOutputMR;
-                args2[1] = args[4] + "/GlobalEvaluationOutput_" + i;
+                args2[1] = outputFolder + "/GlobalEvaluationOutput_" + i;
                 ToolRunner.run(new HdfsReaderToLocal(), args2);
-            }         
+            }
             
             //Creamos el fichero con las reglas ordenadas por PI
             //Y una serie de ficheros con los datos de test que serán el directorio que
@@ -181,6 +196,9 @@ public class Driver
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing testSet in HDFS");
             Driver.generateTestSetFile(i, nameFileOutputMR);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> TestSet write in HDFS OK");
+            
+            //Almacenamos el numero de reglas para el reporte final
+            numRules[i-1] = DataBase.getNumRows(Driver.nameOrderedRuleTable);
             
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
             //args2[0] = "/input/testset";
@@ -199,14 +217,13 @@ public class Driver
             
             //Escribimos el resultado en el almacenamiento local
             args2[0] = nameFileOutputMR;
-            args2[1] = args[4] + "/Test_" + i;
+            args2[1] = outputFolder + "/Test_" + i;
             ToolRunner.run(new HdfsReaderToLocal(), args2);
             
             //Obtenemos la precisión del clasificador
             accuracy[i-1] = Driver.getAccuracy(nameFileOutputMR);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> AccuracyFold_" + i + ": "
                     + accuracy[i-1]);
-            
         }
         
         finishTime = System.currentTimeMillis() - initTime;
@@ -220,25 +237,27 @@ public class Driver
         String timeString = String.format("%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
         
         //
-        str = args[0] + "\n";
+        str = args[0] + "\n\n";
         
         for (int i = 0; i < numFolds; i++)
         {
-            str += "Precision del clasificador " + (i+1) + ": " + accuracy[i] + "\n";
-            meanAccuracy += accuracy[i];
+            str += "Precision del clasificador " + (i+1) + ": " + String.format("%.2f", accuracy[i]*100) +
+                    "\tNumero de reglas: " + numRules[i] +"\n";
+            meanAccuracy += accuracy[i]*100;
         }
         
-        str += "\nPrecision media del clasificador: " + meanAccuracy/numFolds
-                + "\nIR: " + Driver.calculateIRGlobal() + "\n\nTamanio poblacion: "
+        str += "\nPrecision media del clasificador: " + String.format("%.2f",(meanAccuracy/numFolds))
+                + "\nIR: " + String.format("%.2f", Driver.calculateIRGlobal()) + "\n\nTamanio poblacion: "
                 + Driver.algorithmSizeP + "\nNumero de iteraciones sin mejora: "
                 + Driver.algorithmIter + "\nEvaluacion Global: " + args[8]
                 + "\nPonderado: " + InfoRule.weighted + "\nAplicación de balanceado de clases: "
                 + (!Boolean.parseBoolean(args[5]))
-                + "\nTiempo de ejecucion (Dias:Horas:Minutos:Segundos) => " + timeString;
+                + "\nTiempo de ejecucion (Dias:Horas:Minutos:Segundos) => " + timeString
+                + "\nSemilla aleatoria inicial: " + args[9];
         
         String[] tab = args[0].split("/");
         
-        LocalStorageWrite.run(args[4] + "/Accuracy_" + tab[tab.length-1] + "_"
+        LocalStorageWrite.run(outputFolder + "/Accuracy_" + tab[tab.length-1] + "_"
                 + LocalDateTime.now() + ".txt", str);
         
         System.exit(0);
@@ -419,7 +438,7 @@ public class Driver
         //Comprobamos si existe un último split que no tenía suficientes ejemplos
         //en la clase negativa (mayoritaria)
         if((negativeSize%positiveSize) != 0)
-        {            
+        {
             //Obtenemos el buffer de escritura en HDFS
             ToolRunner.run(new HdfsWriter(), new String[] {pathFolderTraining + 
                     "/" + nameTrainingSetFile + (((int)iR)+1)});
@@ -454,6 +473,7 @@ public class Driver
         */
     }
     
+    
     /**
      * Genera los training set para clases balanceadas
      * @param testFold
@@ -461,10 +481,7 @@ public class Driver
      */
     private static void generateTrainingSetFileB(int testFold) throws Exception
     {
-        long positiveSize, negativeSize;
-        long value, sizeSubsection;
         int[] numBits, trainingFolds = new int[4];
-        float iR;
         
         //Escogemos los folds para training
         for (int i=1, j=0; i <= 5; i++, j++)
