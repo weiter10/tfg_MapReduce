@@ -514,6 +514,8 @@ public class Algorithm
             rules[1].setValue(i, parent2.getValue(i));
         }
         
+        Rule.checkAllOnes(rules[0]);
+        Rule.checkAllOnes(rules[1]);
         rules[0].updatePerformance();
         rules[1].updatePerformance();
         
@@ -554,6 +556,8 @@ public class Algorithm
             rules[1].setClassAttribute(parent1.getClassAttribute());
         }
         
+        Rule.checkAllOnes(rules[0]);
+        Rule.checkAllOnes(rules[1]);
         rules[0].updatePerformance();
         rules[1].updatePerformance();
         
@@ -592,6 +596,7 @@ public class Algorithm
             }
         }
         
+        Rule.checkAllOnes(rule);
         rule.updatePerformance();
     }
     

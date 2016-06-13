@@ -134,14 +134,16 @@ public final class Rule extends Row implements Comparable
             this.row[i].modifyToCover(ex.row[i]);
         }
         
+        Rule.checkAllOnes(this);
         this.updatePerformance();
     }
     
     /**
      * Cambiar el valor de la posición "posi" por "value"
-     * Atención: este método no actualiza el performance de la regla!
-     * El usuario tendrá que llamar a "updatePerformance()" después de aplicar
-     * este método para que la regla tenga actualizado su performance
+     * Atención: este método no actualiza el performance de la regla! ni llama a 
+     * checkAllOnes()
+     * El usuario tendrá que llamar a "updatePerformance()" y "checkAllOnes()"
+     * después de aplicar este método para que la regla tenga actualizado su performance
      * @param posi
      * @param value 
      */
@@ -161,6 +163,7 @@ public final class Rule extends Row implements Comparable
         
         else this.setValue(posi, '0');
         
+        Rule.checkAllOnes(this);
         this.updatePerformance();
     }
     
@@ -220,8 +223,10 @@ public final class Rule extends Row implements Comparable
         //Asignamos la clase, llamamos al constructor de copia del atributo de clase
         //del ejemplo
         attributes[pattern.length-1] = new Attribute(atrClass);
+        Rule r = new Rule(attributes, parse);
+        Rule.checkAllOnes(r);
         
-        return new Rule(attributes, parse);
+        return r;
     }
     
     
@@ -316,5 +321,18 @@ public final class Rule extends Row implements Comparable
                 return 0;
             }
         };
+    }
+    
+    
+    /**
+     * Comprueba los atributos de la regla buscando atributos que sean todo unos.
+     * Si es el caso, ese atributo se cambia por todo ceros.
+     * @param r
+     */
+    public static void checkAllOnes(Rule r)
+    {
+        //No se comprueba el atributo de clase
+        for (int i = 0; i < r.row.length-1; i++)
+            r.row[i].checkAllOnes();
     }
 }

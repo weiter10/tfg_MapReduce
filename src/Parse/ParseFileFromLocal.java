@@ -123,78 +123,81 @@ public abstract class ParseFileFromLocal
         //Introducimos el dataset en el data warehouse
         while((line = br.readLine()) != null)
         {
-            lineSplit = line.split(splitBy);
-            insertTmp = "(";
-
-            for (int i = 0, indexMap = 0; i < numAtr; i++, indexMap++)
+            if(!line.equals(""))
             {
-                if(i != classColNum)
+                lineSplit = line.split(splitBy);
+                insertTmp = "(";
+
+                for (int i = 0, indexMap = 0; i < numAtr; i++, indexMap++)
                 {
-                    //Si el valor es nuevo, se añade a las tablas hash para su traducción
-                    //a int
-                    if(!inside[indexMap].containsKey(lineSplit[i]))
+                    if(i != classColNum)
                     {
-                        inside[indexMap].put(lineSplit[i], inside[indexMap].size()+1);
-                        outside[indexMap].put(outside[indexMap].size()+1, lineSplit[i]);
+                        //Si el valor es nuevo, se añade a las tablas hash para su traducción
+                        //a int
+                        if(!inside[indexMap].containsKey(lineSplit[i]))
+                        {
+                            inside[indexMap].put(lineSplit[i], inside[indexMap].size()+1);
+                            outside[indexMap].put(outside[indexMap].size()+1, lineSplit[i]);
+                        }
+
+                        insertTmp += inside[indexMap].get(lineSplit[i]) + ",";
+                    }
+                    else
+                    {
+                        //Si el valor es nuevo, se añade a las tablas hash para su traducción
+                        //a int
+                        if(!inside[numAtr-1].containsKey(lineSplit[i]))
+                        {
+                            inside[numAtr-1].put(lineSplit[i], inside[numAtr-1].size()+1);
+                            outside[numAtr-1].put(outside[numAtr-1].size()+1, lineSplit[i]);
+                        }
+
+                        indexMap--;
+                    }
+                }
+
+                insertTmp += inside[numAtr-1].get(lineSplit[classColNum]) + ",";
+
+                if(posClass.equals(lineSplit[classColNum]))
+                {
+                    insertTmp += foldPositive + ")";
+                    foldPositive++;
+
+                    if(foldPositive > 5) foldPositive = 1;
+
+                    if(!insertPositives.equals("")) insertPositives += "," + insertTmp;
+
+                    else insertPositives = insertTmp;
+
+                    if(insertPositives.length() > limit)
+                    {
+                        DataBase.insert(Driver.nameBigTablePos, insertPositives);
+                        insertPositives = "";
                     }
 
-                    insertTmp += inside[indexMap].get(lineSplit[i]) + ",";
+                    numPosClass++;
                 }
                 else
                 {
-                    //Si el valor es nuevo, se añade a las tablas hash para su traducción
-                    //a int
-                    if(!inside[numAtr-1].containsKey(lineSplit[i]))
+                    insertTmp += foldNegative + ")";
+                    foldNegative++;
+
+                    if(foldNegative > 5) foldNegative = 1;
+
+                    if(!insertNegatives.equals("")) insertNegatives += "," + insertTmp;
+
+                    else insertNegatives = insertTmp;
+
+                    if(insertNegatives.length() > limit)
                     {
-                        inside[numAtr-1].put(lineSplit[i], inside[numAtr-1].size()+1);
-                        outside[numAtr-1].put(outside[numAtr-1].size()+1, lineSplit[i]);
+                        DataBase.insert(Driver.nameBigTableNeg, insertNegatives);
+                        insertNegatives = "";
                     }
 
-                    indexMap--;
+                    numNegClass++;
                 }
+                //--
             }
-
-            insertTmp += inside[numAtr-1].get(lineSplit[classColNum]) + ",";
-
-            if(posClass.equals(lineSplit[classColNum]))
-            {
-                insertTmp += foldPositive + ")";
-                foldPositive++;
-                
-                if(foldPositive > 5) foldPositive = 1;
-                
-                if(!insertPositives.equals("")) insertPositives += "," + insertTmp;
-                
-                else insertPositives = insertTmp;
-                
-                if(insertPositives.length() > limit)
-                {
-                    DataBase.insert(Driver.nameBigTablePos, insertPositives);
-                    insertPositives = "";
-                }
-                
-                numPosClass++;
-            }
-            else
-            {
-                insertTmp += foldNegative + ")";
-                foldNegative++;
-                
-                if(foldNegative > 5) foldNegative = 1;
-                
-                if(!insertNegatives.equals("")) insertNegatives += "," + insertTmp;
-                
-                else insertNegatives = insertTmp;
-                
-                if(insertNegatives.length() > limit)
-                {
-                    DataBase.insert(Driver.nameBigTableNeg, insertNegatives);
-                    insertNegatives = "";
-                }
-                
-                numNegClass++;
-            }
-            //--
         }
         //--
         

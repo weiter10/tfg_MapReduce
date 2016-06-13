@@ -63,6 +63,9 @@ public class Attribute
      */
     public boolean coverAttribute(Attribute atr)
     {
+        if(this.isAllCeros())
+            return true;
+        
         for (int i = 0; i < this.tab.length; i++)
         {
             if(atr.tab[i] == '1' && atr.tab[i] != tab[i])
@@ -128,5 +131,51 @@ public class Attribute
             result += c;
         
         return result;
+    }
+    
+    /**
+     * Comprueba si el atributo tiene todo unos, si es así se cambia por ceros
+     */
+    public void checkAllOnes()
+    {       
+        if(this.isAllOnes())
+        {
+            for (int i = 0; i < tab.length; i++)
+                tab[i] = '0';
+        }
+    }
+    
+    
+    public boolean isAllOnes()
+    {
+        boolean allOnes = true;
+        int index = 0;
+        
+        while(index < tab.length && allOnes)
+        {
+            if(tab[index] != '1')
+                allOnes = false;
+            
+            index++;
+        }
+        
+        return allOnes;
+    }
+    
+    
+    public boolean isAllCeros()
+    {
+        boolean allCeros = true;
+        int index = 0;
+        
+        while(index < tab.length && allCeros)
+        {
+            if(tab[index] == '1')
+                allCeros = false;
+            
+            index++;
+        }
+        
+        return allCeros;
     }
 }
