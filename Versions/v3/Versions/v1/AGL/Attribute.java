@@ -65,8 +65,7 @@ public class Attribute
     {
         for (int i = 0; i < this.tab.length; i++)
         {
-            if(atr.tab[i] == '1' && atr.tab[i] != tab[i])
-                return false;
+            if(atr.tab[i] == '1' && atr.tab[i] != tab[i]) return false;
         }
         
         return true;
@@ -124,8 +123,7 @@ public class Attribute
     {
         String result = "";
         
-        for(char c : this.tab)
-            result += c;
+        for(char c : this.tab) result += c;
         
         return result;
     }

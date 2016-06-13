@@ -1,0 +1,2 @@
+V1: versión sin particionamiento para training y test
+V2: todo ok, crea un gran fichero como entrada de los job, además de que en la evaluación global las reglas se replican en cada linea
