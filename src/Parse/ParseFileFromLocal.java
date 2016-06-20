@@ -213,6 +213,11 @@ public abstract class ParseFileFromLocal
     }
     
     
+    /**
+     * De valor numérico a original de entrada tipo String
+     * @param line
+     * @return 
+     */
     public static String intToString(String line)
     {
         String[] valuesStr = line.split(",");
@@ -227,6 +232,11 @@ public abstract class ParseFileFromLocal
     }
     
     
+    /**
+     * De ejemplo binario a cadena de caracteres
+     * @param line
+     * @return 
+     */
     public static String binaryToString(String line)
     {
         String[] valuesStr = line.split(",");
@@ -246,6 +256,71 @@ public abstract class ParseFileFromLocal
             
             result += outside[i].get(value) + ",";
         }
+        
+        return result;
+    }
+    
+    
+    /**
+     * De regla en binario a regla con los datos de entrada
+     * @param line
+     * @return
+     */
+    public static String binaryRuleToString(String line)
+    {
+        //System.out.println(line);
+        String[] valuesStr = line.split(",");
+        String result = "{";
+        
+        //Por cada atributo
+        for (int i = 0; i < valuesStr.length-1; i++)
+        {
+            char[] atr = valuesStr[i].toCharArray();
+            int value = atr.length;
+            String atrStr = "";
+            
+            //Por cada bit
+            for (int j = 0; j < atr.length; j++)
+            {
+                if(atr[j] == '1')
+                {
+                    if(atrStr.equals(""))
+                        atrStr = "(Att" + (i+1) + "=(";
+                    
+                    if(!atrStr.equals("(Att" + (i+1) + "=("))
+                        atrStr += ",";
+                    
+                    atrStr += outside[i].get(value);
+                }
+                
+                value--;
+            }
+            
+            if(!atrStr.equals(""))
+            {
+                atrStr += "))";
+                
+                if(!result.equals("{"))
+                    result += "^" + atrStr;
+
+                else
+                    result += atrStr;
+            }
+        }
+        
+        //Atributo de clase
+        char[] atr = valuesStr[valuesStr.length-1].toCharArray();
+        int j = 0;
+        int value = atr.length;
+
+        while(atr[j] != '1')
+        {
+            j++;
+            value--;
+        }
+
+        
+        result += "}=> (class=" +  outside[valuesStr.length-1].get(value) + ")";
         
         return result;
     }

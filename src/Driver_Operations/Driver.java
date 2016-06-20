@@ -45,6 +45,7 @@ public class Driver
             nameGlobalEvaluationFile = "globalEvaluation",
             nameOrderedRulesFile = "orderedRules",
             nameTrainingSetFile = "trainingSet",
+            outputRulesFileName = "rules",
             pathFolderTraining = "/input/trainingFiles",
             pathFolderTestFile = "/input/testFiles",
             pathFolderOutputMR = "/output";
@@ -53,6 +54,10 @@ public class Driver
             algorithmIter, algorithmSizeP;
     
     public static long countSeedRnd;
+    
+    public static final int SIZESTRINGBUILDER = 0*1024*1024,
+            //SIZESTRINGBUILDERMAX = SIZESTRINGBUILDER - (2*1024*1024);
+            SIZESTRINGBUILDERMAX = SIZESTRINGBUILDER - (16*1024*1024);
     
     public static void main(String[] args) throws Exception
     {
@@ -99,6 +104,7 @@ public class Driver
         //Generamos 5 cross validation
         for (int i = 1; i <= numFolds; i++)
         {
+            
             //Borramos el directorio de salida de trabajos MapReduce
             args2[0] = pathFolderOutputMR;
             args2[1] = "";
@@ -185,6 +191,10 @@ public class Driver
             //Almacenamos el numero de reglas para el reporte final
             numRules[i-1] = DataBase.getNumRows(Driver.nameOrderedRuleTable);
             
+            //Almacenamos en local las reglas traducidas
+            DataBase.writeRulesInLocalFile(Driver.nameOrderedRuleTable, 
+                    outputFolder + "/" + Driver.outputRulesFileName + "_" + i);
+            
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
             //args2[0] = "/input/testset";
             //args2[1] = args[4] + "/testsetHDFS_" + i;
@@ -209,6 +219,7 @@ public class Driver
             accuracy[i-1] = Driver.getAccuracy(nameFileOutputMR);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> AccuracyFold_" + i + ": "
                     + accuracy[i-1]);
+            
         }
         
         finishTime = System.currentTimeMillis() - initTime;
@@ -247,6 +258,8 @@ public class Driver
         
         System.exit(0);
     }
+    
+    
     
     /**
      * Obtiene la precisión del clasificador

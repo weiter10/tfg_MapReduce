@@ -7,6 +7,7 @@ package Hive_JDBC_Operations;
 
 import Driver_Operations.Driver;
 import Hdfs_Operations.HdfsWriter;
+import Local_Storage_Operations.LocalStorageWrite;
 import Parse.ParseFileFromLocal;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -484,6 +485,48 @@ public abstract class DataBase
             }
             
             bw.write(data);
+            
+            con.close();
+            
+        } catch (SQLException ex)
+        {
+            Logger.getLogger(DataBase.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
+    /**
+     * Escribe las reglas traducidar a un fichero local
+     * @param tableName
+     * @param fileName
+     * @throws IOException 
+     */
+    public static void writeRulesInLocalFile(String tableName, String fileName)
+            throws IOException, Exception
+    {
+        try
+        {
+            Connection con = HiveConnect.getConnection();
+            Statement stmt = con.createStatement();
+            String query = "SELECT * FROM " + tableName + " ORDER BY piM DESC";
+            ResultSet rs = stmt.executeQuery(query);
+            String binaryRule;
+            String rules = "", tmp;
+            int i = 1;
+            
+            while(rs.next())
+            {
+                binaryRule = rs.getString("rule");
+                tmp = ParseFileFromLocal.binaryRuleToString(binaryRule);
+                rules += "Rule" + i + tmp
+                        + "[Num. repeticiones:" + rs.getString("numRe") + "]"
+                        + "[Num. positivos:" + rs.getString("numPos") + "]"
+                        + "[Num. negativos:" + rs.getString("numNeg") + "]"
+                        +"[PI: " + rs.getString("piM") + "]\n\n";
+                i++;
+            }
+            
+            LocalStorageWrite.run(fileName, rules);
             
             con.close();
             
