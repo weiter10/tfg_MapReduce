@@ -5,8 +5,8 @@
  */
 package Job_Test;
 
-import Driver_Operations.Driver;
-import static Driver_Operations.Driver.pathFolderOutputMR;
+import Main_Operations.Main;
+import static Main_Operations.Main.pathFolderOutputMR;
 import Hdfs_Operations.HdfsReaderToLocal;
 import Hdfs_Operations.HdfsRemove;
 import Job_Training.MapTraining;
@@ -39,7 +39,7 @@ public class Test extends Configured implements Tool
         
         Job job = new Job(conf, "TestFase");
         
-        job.setJarByClass(Driver.class);
+        job.setJarByClass(Main.class);
         
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
@@ -50,7 +50,7 @@ public class Test extends Configured implements Tool
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         
-        Path p = new Path(Driver.pathFolderTestFile);
+        Path p = new Path(Main.pathFolderTestFile);
         MultipleInputs.addInputPath(job, p, TextInputFormat.class, MapTest.class);
         FileOutputFormat.setOutputPath(job, new Path("/output"));
         

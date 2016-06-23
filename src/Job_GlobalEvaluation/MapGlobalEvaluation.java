@@ -5,7 +5,7 @@
  */
 package Job_GlobalEvaluation;
 
-import Driver_Operations.Driver;
+import Main_Operations.Main;
 import GlobalEvaluation.Example;
 import GlobalEvaluation.Parse;
 import GlobalEvaluation.Rule;
@@ -47,7 +47,7 @@ public class MapGlobalEvaluation extends Mapper<LongWritable, Text, Text, Text>
         try
         {
             //Obtenemos el buffer de lectura en HDFS para leer las reglas
-            ToolRunner.run(new HdfsReader(), new String[] {"/input/" + Driver.nameGlobalEvaluationFile});
+            ToolRunner.run(new HdfsReader(), new String[] {"/input/" + Main.nameGlobalEvaluationFile});
             BufferedReader br = HdfsReader.br;
             
             Rule best;

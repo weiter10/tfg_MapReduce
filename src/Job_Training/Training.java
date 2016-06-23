@@ -6,7 +6,7 @@
 package Job_Training;
 
 import AGL.Algorithm;
-import Driver_Operations.Driver;
+import Main_Operations.Main;
 import Hdfs_Operations.HdfsReaderToLocal;
 import Hdfs_Operations.HdfsRemove;
 import Job_GlobalEvaluation.GlobalEvaluation;
@@ -38,7 +38,7 @@ public class Training extends Configured implements Tool
         
         Job job = new Job(conf, "DGA");
         
-        job.setJarByClass(Driver.class);
+        job.setJarByClass(Main.class);
         
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
@@ -49,7 +49,7 @@ public class Training extends Configured implements Tool
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         
-        Path p = new Path(Driver.pathFolderTraining);
+        Path p = new Path(Main.pathFolderTraining);
         MultipleInputs.addInputPath(job, p, TextInputFormat.class, MapTraining.class);
         FileOutputFormat.setOutputPath(job, new Path("/output"));
         

@@ -8,6 +8,7 @@ package Local_Storage_Operations;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
 
 /**
  *
@@ -23,6 +24,20 @@ public abstract class LocalStorageWrite
         file.createNewFile();
         bw = new BufferedWriter(new FileWriter(file));
         bw.write(data);
+        bw.flush();
+        bw.close();
+    }
+    
+    
+    public static void run(String fileName, ArrayList<String> data) throws Exception
+    {
+        File file = new File(fileName);
+        file.createNewFile();
+        bw = new BufferedWriter(new FileWriter(file));
+        
+        for(String line : data)
+            bw.write(line);
+        
         bw.flush();
         bw.close();
     }

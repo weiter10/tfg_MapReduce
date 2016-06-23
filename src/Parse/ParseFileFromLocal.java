@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import Driver_Operations.Driver;
+import Main_Operations.Main;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,7 +40,7 @@ public abstract class ParseFileFromLocal
         String line, insertTmp, insertPositives = "",
                 insertNegatives = "";
         String[] lineSplit;
-        int numCol, numAtr, limit = Driver.maxSizeStr, foldPositive = 1,
+        int numCol, numAtr, limit = Main.maxSizeStr, foldPositive = 1,
                 foldNegative = 1;
         ParseFileFromLocal.positiveClass = posClass;
         classColNum--;
@@ -51,12 +51,12 @@ public abstract class ParseFileFromLocal
         lineSplit = line.split(splitBy);
         numAtr = lineSplit.length;
         numCol = numAtr+1;
-        Driver.numAttributes = numAtr;
+        Main.numAttributes = numAtr;
         
-        DataBase.dropTable(Driver.nameBigTablePos);
-        DataBase.dropTable(Driver.nameBigTableNeg);
-        DataBase.createBigTable(Driver.nameBigTablePos, numCol);
-        DataBase.createBigTable(Driver.nameBigTableNeg, numCol);
+        DataBase.dropTable(Main.nameBigTablePos);
+        DataBase.dropTable(Main.nameBigTableNeg);
+        DataBase.createBigTable(Main.nameBigTablePos, numCol);
+        DataBase.createBigTable(Main.nameBigTableNeg, numCol);
         
         //Inicializamos las variables privadas
         inside = new Map[numAtr];
@@ -171,7 +171,7 @@ public abstract class ParseFileFromLocal
 
                     if(insertPositives.length() > limit)
                     {
-                        DataBase.insert(Driver.nameBigTablePos, insertPositives);
+                        DataBase.insert(Main.nameBigTablePos, insertPositives);
                         insertPositives = "";
                     }
 
@@ -190,7 +190,7 @@ public abstract class ParseFileFromLocal
 
                     if(insertNegatives.length() > limit)
                     {
-                        DataBase.insert(Driver.nameBigTableNeg, insertNegatives);
+                        DataBase.insert(Main.nameBigTableNeg, insertNegatives);
                         insertNegatives = "";
                     }
 
@@ -207,8 +207,11 @@ public abstract class ParseFileFromLocal
         System.out.println("$$$$$$$$$$$$$$$$$$$$$$$-> Final insert...");
         
         //Insertamos los datos restantes
-        DataBase.insert(Driver.nameBigTablePos, insertPositives);
-        DataBase.insert(Driver.nameBigTableNeg, insertNegatives);
+        if(!insertPositives.equals(""))
+            DataBase.insert(Main.nameBigTablePos, insertPositives);
+        
+        if(!insertNegatives.equals(""))
+            DataBase.insert(Main.nameBigTableNeg, insertNegatives);
         //--
     }
     

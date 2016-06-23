@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Driver_Operations;
+package Main_Operations;
 
 import Hdfs_Operations.HdfsCreateDirectory;
 import Hdfs_Operations.HdfsReader;
@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  *
  * @author manu
  */
-public class Driver
+public class Main
 {
     public static String nameBigTablePos = "positiveexamples",
             nameBigTableNeg = "negativeexamples",
@@ -50,8 +50,8 @@ public class Driver
             pathFolderTestFile = "/input/testFiles",
             pathFolderOutputMR = "/output";
     
-    public static int numAttributes, maxSizeStr = Integer.MAX_VALUE/4, 
-            algorithmIter, algorithmSizeP;
+    public static int numAttributes, maxSizeStr = (int) (Integer.MAX_VALUE/Math.pow(2,11)), 
+            algorithmIter, algorithmSizeP, numTrainingFiles = -1;
     
     public static long countSeedRnd;
     
@@ -79,7 +79,7 @@ public class Driver
             System.err.println("Local_dataset Name_positive_class Num_colum_positive_class"
                     + " Separator File_output_name Balanced(true/false) SizePopullaion "
                     + "numIterationsWithOutImprove GlobalEvaluation(true/false) "
-                    + "Seed");
+                    + "Seed" + "[numSplits]");
             System.exit(1);
         }
         
@@ -89,6 +89,21 @@ public class Driver
         
         //Inicializamos la semilla
         countSeedRnd = Long.parseLong(args[9]);
+        
+        //Si las clases estan balanceadas, comprobar si el parámetro opcional que
+        //indica el número de split a realizar en el dataset ha sido introducido
+        if(args[5].equals("true"))
+        {
+            try
+            {
+                numTrainingFiles = Integer.parseInt(args[10]);
+                System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Num split configured in " + numTrainingFiles);
+            }
+            catch(Exception ex)
+            {
+                System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Num split not configured");
+            }
+        }
         
         //Construimos el directorio de salida
         outputFolder = args[4] + "/" + Long.toString(System.currentTimeMillis());
@@ -104,7 +119,6 @@ public class Driver
         //Generamos 5 cross validation
         for (int i = 1; i <= numFolds; i++)
         {
-            
             //Borramos el directorio de salida de trabajos MapReduce
             args2[0] = pathFolderOutputMR;
             args2[1] = "";
@@ -128,10 +142,10 @@ public class Driver
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing Dataset in HDFS");
             
             if(args[5].equals("true"))
-                Driver.generateTrainingSetFileB(i);
+                Main.generateTrainingSetFileB(i);
             
             else
-                Driver.generateTrainingSetFileNB(i);
+                Main.generateTrainingSetFileNB(i);
             
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Dataset write in HDFS OK");
             
@@ -146,8 +160,8 @@ public class Driver
             ToolRunner.run(new HdfsReaderToLocal(), args2);
             
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
-            //args2[0] = "/input/" + Driver.nameTrainingSetFile;
-            //args2[1] =  args[4] + "/" + Driver.nameTrainingSetFile + "_" + i;
+            //args2[0] = "/input/" + Main.nameTrainingSetFile;
+            //args2[1] =  args[4] + "/" + Main.nameTrainingSetFile + "_" + i;
             //ToolRunner.run(new HdfsReaderToLocal(), args2);
             
             //Evaluacion global
@@ -155,13 +169,13 @@ public class Driver
             {
                 //Creamos el fichero de entrada para la evaluación global
                 System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing globalEvaluation file in HDFS");
-                Driver.generateGlobalEvatuationFile(nameFileOutputMR);
+                Main.generateGlobalEvatuationFile(nameFileOutputMR);
                 System.out.println("$$$$$$$$$$$$$$$$$$$$$-> GlobalEvaluation file in HDFS OK");
 
                 
                 //Escribimos el fichero de entrada de la evaluación global en el
                 //almacenamiento local
-                //args2[0] = "/input/" + Driver.nameGlobalEvaluationFile;
+                //args2[0] = "/input/" + Main.nameGlobalEvaluationFile;
                 //args2[1] = outputFolder + "/GlobalEvaluationInput_" + i;
                 //ToolRunner.run(new HdfsReaderToLocal(), args2);
 
@@ -185,15 +199,15 @@ public class Driver
             //Y una serie de ficheros con los datos de test que serán el directorio que
             //contiene a estos ficheros será en de entrada del MAP
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing testSet in HDFS");
-            Driver.generateTestSetFile(i, nameFileOutputMR);
+            Main.generateTestSetFile(i, nameFileOutputMR);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> TestSet write in HDFS OK");
             
             //Almacenamos el numero de reglas para el reporte final
-            numRules[i-1] = DataBase.getNumRows(Driver.nameOrderedRuleTable);
+            numRules[i-1] = DataBase.getNumRows(Main.nameOrderedRuleTable);
             
             //Almacenamos en local las reglas traducidas
-            DataBase.writeRulesInLocalFile(Driver.nameOrderedRuleTable, 
-                    outputFolder + "/" + Driver.outputRulesFileName + "_" + i);
+            DataBase.writeRulesInLocalFile(Main.nameOrderedRuleTable, 
+                    outputFolder + "/" + Main.outputRulesFileName + "_" + i);
             
             //Escritura del fichero de entrada de los MAP en el almacenamiento local
             //args2[0] = "/input/testset";
@@ -216,7 +230,7 @@ public class Driver
             ToolRunner.run(new HdfsReaderToLocal(), args2);
             
             //Obtenemos la precisión del clasificador
-            accuracy[i-1] = Driver.getAccuracy(nameFileOutputMR);
+            accuracy[i-1] = Main.getAccuracy(nameFileOutputMR);
             System.out.println("$$$$$$$$$$$$$$$$$$$$$-> AccuracyFold_" + i + ": "
                     + accuracy[i-1]);
             
@@ -243,13 +257,16 @@ public class Driver
         }
         
         str += "\nPrecision media del clasificador: " + String.format("%.2f",(meanAccuracy/numFolds))
-                + "\nIR: " + String.format("%.2f", Driver.calculateIRGlobal()) + "\n\nTamanio poblacion: "
-                + Driver.algorithmSizeP + "\nNumero de iteraciones sin mejora: "
-                + Driver.algorithmIter + "\nEvaluacion Global: " + args[8]
+                + "\nIR: " + String.format("%.2f", Main.calculateIRGlobal()) + "\n\nTamanio poblacion: "
+                + Main.algorithmSizeP + "\nNumero de iteraciones sin mejora: "
+                + Main.algorithmIter + "\nEvaluacion Global: " + args[8]
                 + "\nPonderado: " + InfoRule.weighted + "\nAplicación de balanceado de clases: "
                 + (!Boolean.parseBoolean(args[5]))
                 + "\nTiempo de ejecucion (Dias:Horas:Minutos:Segundos) => " + timeString
                 + "\nSemilla aleatoria inicial: " + args[9];
+        
+        if(numTrainingFiles != -1)
+            str += "\n" + "Num splits: " + numTrainingFiles;
         
         String[] tab = args[0].split("/");
         
@@ -319,16 +336,16 @@ public class Driver
     {
         //Introducimos las reglas en Hive
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing bulk rules in Hive");
-        DataBase.createRuleTable(Driver.nameBulkRuleTable);
-        DataBase.load(Driver.nameBulkRuleTable, fileRulesName);
+        DataBase.createRuleTable(Main.nameBulkRuleTable);
+        DataBase.load(Main.nameBulkRuleTable, fileRulesName);
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Bulk rules write in Hive OK");
         
         //Obtenemos el buffer de escritura en HDFS
-        ToolRunner.run(new HdfsWriter(), new String[] {"/input/" + Driver.nameGlobalEvaluationFile});
+        ToolRunner.run(new HdfsWriter(), new String[] {"/input/" + Main.nameGlobalEvaluationFile});
         BufferedWriter bw = HdfsWriter.bw;
         
         //Escribimos las reglas
-        DataBase.writeBulkRulesInFile(Driver.nameBulkRuleTable, bw);
+        DataBase.writeBulkRulesInFile(Main.nameBulkRuleTable, bw);
         
         bw.close();
     }
@@ -340,8 +357,8 @@ public class Driver
         
         //Introducimos las reglas en Hive
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Writing ordered rules in Hive");
-        DataBase.createRuleTable(Driver.nameOrderedRuleTable);
-        DataBase.load(Driver.nameOrderedRuleTable, fileRulesName);
+        DataBase.createRuleTable(Main.nameOrderedRuleTable);
+        DataBase.load(Main.nameOrderedRuleTable, fileRulesName);
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Ordered rules write in Hive OK");
         
         //Escribimos las reglas ordenadas por PI en un fichero
@@ -351,23 +368,23 @@ public class Driver
         bwRules.close();
         
         //Se generan los ficheros de test
-        DataBase.writeTestSet(Driver.nameBigTablePos, Driver.nameBigTableNeg,
+        DataBase.writeTestSet(Main.nameBigTablePos, Main.nameBigTableNeg,
                 testFold, numBits);
     }
 
     
     private static float calculateIRGlobal()
     {
-        long numNeg = DataBase.getNumRows(Driver.nameBigTableNeg);
-        long numPos = DataBase.getNumRows(Driver.nameBigTablePos);
+        long numNeg = DataBase.getNumRows(Main.nameBigTableNeg);
+        long numPos = DataBase.getNumRows(Main.nameBigTablePos);
         
         return (float)numNeg/numPos;
     }
     
     private static float calculateIRFold()
     {
-        long numNeg = DataBase.getNumRows(Driver.nameTableTrainingNeg);
-        long numPos = DataBase.getNumRows(Driver.nameTableTrainingPos);
+        long numNeg = DataBase.getNumRows(Main.nameTableTrainingNeg);
+        long numPos = DataBase.getNumRows(Main.nameTableTrainingPos);
         
         return (float)numNeg/numPos;
     }
@@ -397,17 +414,17 @@ public class Driver
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Test fold: " + testFold);
         
         //Construimos las tablas de Training
-        DataBase.createTrainingTable(Driver.nameBigTablePos, Driver.nameTableTrainingPos, trainingFolds);
-        DataBase.createTrainingTable(Driver.nameBigTableNeg, Driver.nameTableTrainingNeg, trainingFolds);
+        DataBase.createTrainingTable(Main.nameBigTablePos, Main.nameTableTrainingPos, trainingFolds);
+        DataBase.createTrainingTable(Main.nameBigTableNeg, Main.nameTableTrainingNeg, trainingFolds);
         
         numBits = ParseFileFromLocal.getNumBits();
-        positiveSize = DataBase.getNumRows(Driver.nameTableTrainingPos);
-        negativeSize = DataBase.getNumRows(Driver.nameTableTrainingNeg);
+        positiveSize = DataBase.getNumRows(Main.nameTableTrainingPos);
+        negativeSize = DataBase.getNumRows(Main.nameTableTrainingNeg);
         
         //El IR del dataset que recibe el genético va a ser 1, ya que las clases
         //están totalmente balanceadas
         int irAGL = 1;
-        iR = Driver.calculateIRFold();
+        iR = Main.calculateIRFold();
         
         for (int i = 0; i < (int)iR; i++)
         {
@@ -419,15 +436,15 @@ public class Driver
             value = (i*positiveSize)+1;
             
             //Escribimos la semilla aleatoria y el IR
-            bw.write(Driver.countSeedRnd + "\t\t" + irAGL + "\t\t" +
-                    Driver.algorithmSizeP + "\t\t" + Driver.algorithmIter + "\t\t");
-            Driver.countSeedRnd++;
+            bw.write(Main.countSeedRnd + "\t\t" + irAGL + "\t\t" +
+                    Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
+            Main.countSeedRnd++;
             
             //Escribimos los ejemplos positivos
-            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingPos, numBits, 1, positiveSize, bw);
+            DataBase.writeDataBinaryFormat(Main.nameTableTrainingPos, numBits, 1, positiveSize, bw);
             
             //Escribimos los ejemplos negativos
-            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, value, value+positiveSize-1, bw);
+            DataBase.writeDataBinaryFormat(Main.nameTableTrainingNeg, numBits, value, value+positiveSize-1, bw);
             bw.write("\n");
             
             bw.close();//Cerramos el buffer de escritura HDFS
@@ -447,18 +464,18 @@ public class Driver
             
             //Obtenemos el spilt final
             //Escribimos la semilla aleatoria y el IR
-            bw.write(Driver.countSeedRnd + "\t\t" + irAGL + "\t\t" +
-                    Driver.algorithmSizeP + "\t\t" + Driver.algorithmIter + "\t\t");
-            Driver.countSeedRnd++;
+            bw.write(Main.countSeedRnd + "\t\t" + irAGL + "\t\t" +
+                    Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
+            Main.countSeedRnd++;
             
             //Escribimos los ejemplos positivos
-            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingPos, numBits, 1, positiveSize, bw);
+            DataBase.writeDataBinaryFormat(Main.nameTableTrainingPos, numBits, 1, positiveSize, bw);
             
             //Escribimos los ejemplos negativos
-            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, value, negativeSize, bw);
+            DataBase.writeDataBinaryFormat(Main.nameTableTrainingNeg, numBits, value, negativeSize, bw);
             
             //Le añadimos el trozo faltante con ejemplos del primer split
-            DataBase.writeDataBinaryFormat(Driver.nameTableTrainingNeg, numBits, 1, sizeSubsection, bw);
+            DataBase.writeDataBinaryFormat(Main.nameTableTrainingNeg, numBits, 1, sizeSubsection, bw);
             bw.write("\n");
             bw.close();//Cerramos el buffer de escritura HDFS
         }
@@ -466,7 +483,7 @@ public class Driver
         
         /*
         System.out.println("-------------------------------------------------------------");
-        Driver.showDataBinaryFormat(positiveExamples);
+        Main.showDataBinaryFormat(positiveExamples);
         System.out.println("-------------------------------------------------------------");
         */
     }
@@ -494,13 +511,18 @@ public class Driver
         System.out.println("$$$$$$$$$$$$$$$$$$$$$-> Test fold: " + testFold);
         
         //Construimos las tablas de Training
-        DataBase.createTrainingTable(Driver.nameBigTablePos, Driver.nameTableTrainingPos, trainingFolds);
-        DataBase.createTrainingTable(Driver.nameBigTableNeg, Driver.nameTableTrainingNeg, trainingFolds);
+        DataBase.createTrainingTable(Main.nameBigTablePos, Main.nameTableTrainingPos, trainingFolds);
+        DataBase.createTrainingTable(Main.nameBigTableNeg, Main.nameTableTrainingNeg, trainingFolds);
         
         numBits = ParseFileFromLocal.getNumBits();
         
-        DataBase.writeBalancedDataBinaryFormat(nameTableTrainingPos, nameTableTrainingNeg
+        if(numTrainingFiles == -1)
+            DataBase.writeBalancedDataBinaryFormat(nameTableTrainingPos, nameTableTrainingNeg
                 , pathFolderTraining + "/" + nameTrainingSetFile, numBits);
+        
+        else
+            DataBase.writeBalancedDataBinaryFormat(nameTableTrainingPos, nameTableTrainingNeg
+                , pathFolderTraining + "/" + nameTrainingSetFile, numBits, numTrainingFiles);
     }
     
     

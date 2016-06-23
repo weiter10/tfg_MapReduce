@@ -5,7 +5,7 @@
  */
 package Job_Test;
 
-import Driver_Operations.Driver;
+import Main_Operations.Main;
 import Hdfs_Operations.HdfsReader;
 import TestFase.Example;
 import TestFase.Parse;
@@ -54,7 +54,7 @@ public class MapTest extends Mapper<LongWritable, Text, Text, Text>
         try
         {
             //Obtenemos el buffer de lectura en HDFS para leer las reglas
-            ToolRunner.run(new HdfsReader(), new String[] {"/input/" + Driver.nameOrderedRulesFile});
+            ToolRunner.run(new HdfsReader(), new String[] {"/input/" + Main.nameOrderedRulesFile});
             BufferedReader br = HdfsReader.br;
             
             int result, index;

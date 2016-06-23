@@ -5,7 +5,7 @@
  */
 package Hive_JDBC_Operations;
 
-import Driver_Operations.Driver;
+import Main_Operations.Main;
 
 /**
  *
@@ -17,6 +17,6 @@ public abstract class Test
     {
         int[] fold = {1,2,3,4,5};
         
-        System.out.println(DataBase.getNumRows(Driver.nameBigTableNeg));
+        System.out.println(DataBase.getNumRows(Main.nameBigTableNeg));
     }
 }
