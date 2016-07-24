@@ -130,8 +130,7 @@ public abstract class DataBase
         {
             Connection con = HiveConnect.getConnection();
             Statement stmt = con.createStatement();
-            String query, insertTmp;
-            StringBuilder insert = new StringBuilder();
+            String query, insertTmp, insert = null;
             int limit = Main.maxSizeStr;
             long count = 1;
             
@@ -169,26 +168,21 @@ public abstract class DataBase
                 insertTmp += count + ")";
                 count++;
                 
-                if(insert.length() == 0)
-                    insert.append(insertTmp);
+                if(insert == null) insert = insertTmp;
                 
-                else
-                {
-                    insert.append(",");
-                    insert.append(insertTmp);
-                }
+                else insert += "," + insertTmp;
                 
                 //Si el String ha alcazado un tamaño considerable lo guardamos
                 //en la BD
                 if(insert.length() > limit)
                 {
                     DataBase.insert(tableName, insert);
-                    insert = new StringBuilder();
+                    insert = null;
                 }
             }
             
             //Grabamos los datos restantes
-            if(insert.length() > 0)
+            if(insert != null)
                 DataBase.insert(tableName, insert);
             
             con.close();
@@ -312,7 +306,7 @@ public abstract class DataBase
     }
     
     
-    public static void insert(String tableName, StringBuilder data)
+    public static void insert(String tableName, String data)
     {
         try
         {
@@ -479,21 +473,20 @@ public abstract class DataBase
             Statement stmt = con.createStatement();
             String query = "SELECT rule, piM FROM " + tableName + " ORDER BY piM DESC";
             ResultSet rs = stmt.executeQuery(query);
-            StringBuilder data = new StringBuilder();
+            String data = "";
             
             while(rs.next())
             {
-                data.append(rs.getString(1));
-                data.append("\t");
+                data += rs.getString(1) + "\t";
                 
                 if(data.length() > Main.maxSizeStr)
                 {
-                    bw.write(data.toString());
-                    data = new StringBuilder();
+                    bw.write(data);
+                    data = "";
                 }
             }
             
-            bw.write(data.toString());
+            bw.write(data);
             
             con.close();
             
@@ -520,7 +513,7 @@ public abstract class DataBase
             String query = "SELECT * FROM " + tableName + " ORDER BY piM DESC";
             ResultSet rs = stmt.executeQuery(query);
             String binaryRule;
-            String tmp;
+            String rules = "", tmp;
             int i = 1;
             ArrayList<String> rulesStr = new ArrayList();
             
@@ -562,21 +555,20 @@ public abstract class DataBase
             Statement stmt = con.createStatement();
             String query = "SELECT rule FROM " + tableName;
             ResultSet rs = stmt.executeQuery(query);
-            StringBuilder data = new StringBuilder();
+            String data = "";
             
             while(rs.next())
             {
-                data.append(rs.getString(1));
-                data.append("\t");
+                data += rs.getString(1) + "\t";
                 
                 if(data.length() > Main.maxSizeStr)
                 {
-                    bw.write(data.toString());
-                    data = new StringBuilder();
+                    bw.write(data);
+                    data = "";
                 }
             }
             
-            bw.write(data.toString());
+            bw.write(data);
             
             con.close();
             
@@ -668,8 +660,7 @@ public abstract class DataBase
                     + "id >= " + init + " and id <= " + end);
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnsNumber = rsmd.getColumnCount();
-            String binaryValue;
-            StringBuilder data = new StringBuilder();
+            String data = "", binaryValue;
             int limit = Main.maxSizeStr;
             
             while(rs.next())
@@ -679,20 +670,19 @@ public abstract class DataBase
                 {
                     binaryValue = ParseFileFromLocal.createBinaryValue(numBits[i-1], rs.getInt(i));
                         
-                    data.append(binaryValue);
-                    data.append(",");
+                    data += binaryValue + ",";
                 }
                 
-                data.append("\t");
+                data += "\t";
                 
                 if(data.length() > limit)
                 {
-                    bw.write(data.toString());
-                    data = new StringBuilder();
+                    bw.write(data);
+                    data = "";
                 }
             }
             
-            bw.write(data.toString());
+            bw.write(data);
             con.close();
             
         } catch (SQLException ex)
@@ -726,8 +716,7 @@ public abstract class DataBase
             int columnsNumber = rsmd.getColumnCount();
             long sizePos = DataBase.getNumRows(tablePos);
             long sizeNeg = DataBase.getNumRows(tableNeg);
-            String binaryValue;
-            StringBuilder data = new StringBuilder();
+            String data = "", binaryValue;
             int countFiles = 0, indexSmall, indexBig;
             
             if(sizePos > sizeNeg)
@@ -752,11 +741,10 @@ public abstract class DataBase
                     {
                         binaryValue = ParseFileFromLocal.createBinaryValue(numBits[j-1], rs1.getInt(j));
 
-                        data.append(binaryValue);
-                        data.append(",");
+                        data += binaryValue + ",";
                     }
 
-                    data.append("\t");
+                    data += "\t";
                 }
 
                 if(data.length() > Main.maxSizeStr)
@@ -769,10 +757,10 @@ public abstract class DataBase
                     //Escribimos la semilla aleatoria y el IR
                     bw.write(Main.countSeedRnd + "\t\t" + 1 + "\t\t" +
                     Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
-                    bw.write(data.toString());
+                    bw.write(data);
                     Main.countSeedRnd++;
                     bw.close();
-                    data = new StringBuilder();
+                    data = "";
                 }
             }
 
@@ -793,11 +781,10 @@ public abstract class DataBase
                     {
                         binaryValue = ParseFileFromLocal.createBinaryValue(numBits[j-1], rs1.getInt(j));
 
-                        data.append(binaryValue);
-                        data.append(",");
+                        data += binaryValue + ",";
                     }
 
-                    data.append("\t");
+                    data += "\t";
                 }
 
                 if(data.length() > Main.maxSizeStr)
@@ -810,14 +797,14 @@ public abstract class DataBase
                     //Escribimos la semilla aleatoria y el IR
                     bw.write(Main.countSeedRnd + "\t\t" + 1 + "\t\t" +
                     Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
-                    bw.write(data.toString());
+                    bw.write(data);
                     Main.countSeedRnd++;
                     bw.close();
-                    data = new StringBuilder();
+                    data = "";
                 }
             }
             
-            if(data.length() > 0)
+            if(!data.equals(""))
             {
                 //Obtenemos el buffer de escritura en HDFS
                 ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
@@ -827,7 +814,7 @@ public abstract class DataBase
                 //Escribimos la semilla aleatoria y el IR
                 bw.write(Main.countSeedRnd + "\t\t" + 1 + "\t\t" +
                         Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
-                bw.write(data.toString());
+                bw.write(data);
                 Main.countSeedRnd++;
                 bw.close();
             }
@@ -867,8 +854,7 @@ public abstract class DataBase
             int columnsNumber = rsmd.getColumnCount();
             long sizePos = DataBase.getNumRows(tablePos);
             long sizeNeg = DataBase.getNumRows(tableNeg);
-            String binaryValue;
-            StringBuilder data = new StringBuilder();
+            String data = "", binaryValue;
             int countFiles = 0, indexSmall, indexBig, countExamples = 0;
             int maxExamples;
             
@@ -898,11 +884,10 @@ public abstract class DataBase
                     {
                         binaryValue = ParseFileFromLocal.createBinaryValue(numBits[j-1], rs1.getInt(j));
 
-                        data.append(binaryValue);
-                        data.append(",");
+                        data += binaryValue + ",";
                     }
 
-                    data.append("\t");
+                    data += "\t";
                 }
                 
                 countExamples++;
@@ -919,10 +904,10 @@ public abstract class DataBase
                     //Escribimos la semilla aleatoria y el IR
                     bw.write(Main.countSeedRnd + "\t\t" + 1 + "\t\t" +
                     Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
-                    bw.write(data.toString());
+                    bw.write(data);
                     Main.countSeedRnd++;
                     bw.close();
-                    data = new StringBuilder();
+                    data = "";
                 }
             }
             
@@ -954,11 +939,10 @@ public abstract class DataBase
                     {
                         binaryValue = ParseFileFromLocal.createBinaryValue(numBits[j-1], rs1.getInt(j));
 
-                        data.append(binaryValue);
-                        data.append(",");
+                        data += binaryValue + ",";
                     }
 
-                    data.append("\t");
+                    data += "\t";
                 }
                 
                 countExamples++;
@@ -975,16 +959,16 @@ public abstract class DataBase
                     //Escribimos la semilla aleatoria y el IR
                     bw.write(Main.countSeedRnd + "\t\t" + 1 + "\t\t" +
                     Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
-                    bw.write(data.toString());
+                    bw.write(data);
                     Main.countSeedRnd++;
                     bw.close();
-                    data = new StringBuilder();
+                    data = "";
                 }
             }
             
             System.out.println("Contador2: " + countExamples);
             
-            if(data.length() > 0)
+            if(!data.equals(""))
             {
                 //Obtenemos el buffer de escritura en HDFS
                 ToolRunner.run(new HdfsWriter(), new String[] {fileName + countFiles});
@@ -994,7 +978,7 @@ public abstract class DataBase
                 //Escribimos la semilla aleatoria y el IR
                 bw.write(Main.countSeedRnd + "\t\t" + 1 + "\t\t" +
                         Main.algorithmSizeP + "\t\t" + Main.algorithmIter + "\t\t");
-                bw.write(data.toString());
+                bw.write(data);
                 Main.countSeedRnd++;
                 bw.close();
             }

@@ -37,9 +37,8 @@ public abstract class ParseFileFromLocal
         File archivo = new File(fileName);
         FileReader fr = new FileReader (archivo);
         BufferedReader br = new BufferedReader(fr);
-        String line, insertTmp;
-        StringBuilder insertPositives = new StringBuilder(),
-                insertNegatives = new StringBuilder();
+        String line, insertTmp, insertPositives = "",
+                insertNegatives = "";
         String[] lineSplit;
         int numCol, numAtr, limit = Main.maxSizeStr, foldPositive = 1,
                 foldNegative = 1;
@@ -108,14 +107,14 @@ public abstract class ParseFileFromLocal
         {
             insertTmp += foldPositive + ")";
             foldPositive++;
-            insertPositives.append(insertTmp);
+            insertPositives += insertTmp;
             numPosClass++;
         }
         else
         {
             insertTmp += foldNegative + ")";
             foldNegative++;
-            insertNegatives.append(insertTmp);
+            insertNegatives += insertTmp;
             numNegClass++;
         }
         //--
@@ -166,22 +165,14 @@ public abstract class ParseFileFromLocal
 
                     if(foldPositive > 5) foldPositive = 1;
 
-                    if(insertPositives.length() > 0)
-                    {
-                        insertPositives.append(",");
-                        insertPositives.append(insertTmp);
-                    }
+                    if(!insertPositives.equals("")) insertPositives += "," + insertTmp;
 
-                    else
-                        insertPositives.append(insertTmp);
+                    else insertPositives = insertTmp;
 
                     if(insertPositives.length() > limit)
                     {
-                        System.out.println("Insertando positivo");
-                        System.out.println("tamaño limit " + limit);
-                        System.out.println("tamaño sb positivo " + insertPositives.length());
                         DataBase.insert(Main.nameBigTablePos, insertPositives);
-                        insertPositives = new StringBuilder();
+                        insertPositives = "";
                     }
 
                     numPosClass++;
@@ -193,19 +184,14 @@ public abstract class ParseFileFromLocal
 
                     if(foldNegative > 5) foldNegative = 1;
 
-                    if(insertNegatives.length() > 0)
-                    {
-                        insertNegatives.append(",");
-                        insertNegatives.append(insertTmp);
-                    }
+                    if(!insertNegatives.equals("")) insertNegatives += "," + insertTmp;
 
-                    else
-                        insertNegatives.append(insertTmp);
+                    else insertNegatives = insertTmp;
 
                     if(insertNegatives.length() > limit)
                     {
                         DataBase.insert(Main.nameBigTableNeg, insertNegatives);
-                        insertNegatives = new StringBuilder();
+                        insertNegatives = "";
                     }
 
                     numNegClass++;
@@ -221,10 +207,10 @@ public abstract class ParseFileFromLocal
         System.out.println("$$$$$$$$$$$$$$$$$$$$$$$-> Final insert...");
         
         //Insertamos los datos restantes
-        if(insertPositives.length() > 0)
+        if(!insertPositives.equals(""))
             DataBase.insert(Main.nameBigTablePos, insertPositives);
         
-        if(insertNegatives.length() > 0)
+        if(!insertNegatives.equals(""))
             DataBase.insert(Main.nameBigTableNeg, insertNegatives);
         //--
     }

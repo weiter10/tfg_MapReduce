@@ -3,3 +3,5 @@ V1: versión sin particionamiento para training y test
 V2: todo ok, crea un gran fichero como entrada de los job, además de que en la evaluación global las reglas se replican en cada linea
 
 V3: Antes de la correción de las reglas. Cuando un atributo es todo 1 cambiarlos por todo 0. Un atributo que tiene todo 0 acepta cualquier valor (igual que todo 1).
+
+V4: versión final con String, TODO OK

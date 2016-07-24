@@ -50,11 +50,14 @@ public class Main
             pathFolderTestFile = "/input/testFiles",
             pathFolderOutputMR = "/output";
     
-    //maxSizeStr = (int) (Integer.MAX_VALUE/Math.pow(2,11)),
-    public static int numAttributes, maxSizeStr = (int) Math.pow(2,20),
+    public static int numAttributes, maxSizeStr = (int) (Integer.MAX_VALUE/Math.pow(2,11)), 
             algorithmIter, algorithmSizeP, numTrainingFiles = -1;
     
     public static long countSeedRnd;
+    
+    public static final int SIZESTRINGBUILDER = 0*1024*1024,
+            //SIZESTRINGBUILDERMAX = SIZESTRINGBUILDER - (2*1024*1024);
+            SIZESTRINGBUILDERMAX = SIZESTRINGBUILDER - (16*1024*1024);
     
     public static void main(String[] args) throws Exception
     {
